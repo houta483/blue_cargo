@@ -9,6 +9,8 @@ import textract
 
 os.environ["GLUCOSE_PASSWORD"] = "French44!"
 final_directory = "/Users/Tanner/code/products/glucose/pdf_unformatted_data"
+PATH = "/Users/Tanner/utils/chromedriver"
+# driver = webdriver.Chrome(PATH)
 
 
 class Selenium_Chrome_Class():
@@ -16,12 +18,8 @@ class Selenium_Chrome_Class():
         self.username = username
         self.password = password
         self.current_url = current_url
-        global PATH
-        global driver
 
-    def start_driver():
-        PATH = "/Users/Tanner/utils/chromedriver"
-        driver = webdriver.Chrome(PATH)
+    def start_driver(self):
         driver.get("https://www.libreview.com/")
 
     def country_of_residence(self):
@@ -105,6 +103,8 @@ class Selenium_Chrome_Class():
                 continue
 
     def scrape_pdfs(self):
+        # This reduces the pdfs into only two pages (the weekly summaries)
+        data = []
         for files in os.listdir(final_directory):
             if files.endswith(".pdf"):
                 file_path_to_scrape = os.path.join(final_directory, files)
@@ -121,9 +121,23 @@ class Selenium_Chrome_Class():
                     pdfWriter.write(f)
                     f.close()
 
+        for trimmed_files in os.listdir(final_directory):
+            if re.search("_subset.pdf", str(trimmed_files)):
+                file_path_to_scrape = os.path.join(
+                    final_directory, trimmed_files)
+                text = textract.process(file_path_to_scrape)
+                text = str(text, 'utf-8')
+                f = open(
+                    "/Users/Tanner/code/products/glucose/extracted_data/extracted_data.txt", "a")
+                f.write(text)
+                f.close()
+            else:
+                continue
+
 
 app = Selenium_Chrome_Class(
     username="stevenhoughtonjr1@gmail.com", password=os.environ['GLUCOSE_PASSWORD'], current_url="https://www.libreview.com/")
+# app.start_driver()
 # app.country_of_residence()
 # app.populate_login_elements()
 # app.go_to_patients_page()
