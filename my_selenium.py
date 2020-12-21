@@ -81,8 +81,6 @@ class Selenium_Chrome_Class():
             print('download_glucose_report_button')
             time.sleep(10)
 
-            # move to a certain folder path to store
-
             x += 1
             driver.get("https://www.libreview.com/dashboard")
             time.sleep(10)
