@@ -4,7 +4,7 @@ import time
 import datetime
 import re
 import shutil
-import PyPDF2
+from PyPDF2 import PdfFileReader, PdfFileWriter
 import textract
 
 os.environ["GLUCOSE_PASSWORD"] = "French44!"
@@ -106,13 +106,20 @@ class Selenium_Chrome_Class():
 
     def scrape_pdfs(self):
         for files in os.listdir(final_directory):
-            file_path_to_scrape = os.path.join(final_directory, files)
-            text = textract.process(file_path_to_scrape)
-            text = str(text, 'utf-8')
-            f = open(
-                "/Users/Tanner/code/products/glucose/extracted_data/extracted_data.txt", "a")
-            f.write(text)
-            f.close()
+            if files.endswith(".pdf"):
+                file_path_to_scrape = os.path.join(final_directory, files)
+                pdf_file_path = file_path_to_scrape
+                file_base_name = pdf_file_path.replace('.pdf', '')
+                pdf = PdfFileReader(pdf_file_path)
+                daily_log_pages = [pdf.numPages-3, pdf.numPages-2]
+                pdfWriter = PdfFileWriter()
+
+                for page_num in daily_log_pages:
+                    pdfWriter.addPage(pdf.getPage(page_num))
+
+                with open('{0}_subset.pdf'.format(file_base_name), 'wb') as f:
+                    pdfWriter.write(f)
+                    f.close()
 
 
 app = Selenium_Chrome_Class(
@@ -121,5 +128,5 @@ app = Selenium_Chrome_Class(
 # app.populate_login_elements()
 # app.go_to_patients_page()
 # app.patients_table()
-app.move_files()
+# app.move_files()
 app.scrape_pdfs()
