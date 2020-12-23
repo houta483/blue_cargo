@@ -6,6 +6,7 @@ import re
 import shutil
 from PyPDF2 import PdfFileReader, PdfFileWriter
 import textract
+from helper_functions import helper_functions
 
 os.environ["GLUCOSE_PASSWORD"] = "French44!"
 final_directory = "/Users/Tanner/code/products/glucose/pdf_unformatted_data"
@@ -101,7 +102,6 @@ class Selenium_Chrome_Class():
                 continue
 
     def scrape_pdfs(self):
-        # This reduces the pdfs into only two pages (the weekly summaries)
         data = []
         for files in os.listdir(final_directory):
             if files.endswith(".pdf"):
@@ -115,22 +115,35 @@ class Selenium_Chrome_Class():
                 for page_num in daily_log_pages:
                     pdfWriter.addPage(pdf.getPage(page_num))
 
-                with open('{0}_subset.pdf'.format(file_base_name), 'wb') as f:
+                with open('{0}.pdf'.format(file_base_name), 'wb') as f:
                     pdfWriter.write(f)
                     f.close()
 
-        for trimmed_files in os.listdir(final_directory):
-            if re.search("_subset.pdf", str(trimmed_files)):
-                file_path_to_scrape = os.path.join(
-                    final_directory, trimmed_files)
-                text = textract.process(file_path_to_scrape)
-                text = str(text, 'utf-8')
-                f = open(
-                    "/Users/Tanner/code/products/glucose/extracted_data/extracted_data.txt", "a")
-                f.write(text)
-                f.close()
-            else:
-                continue
+                with open('{0}.pdf'.format(file_base_name), "rb") as in_f:
+                    input1 = PdfFileReader(in_f)
+                    output = PdfFileWriter()
+                    numPages = input1.getNumPages()
+                    print("document has %s pages." % numPages)
+
+                    for i in range(numPages):
+                        page = input1.getPage(i)
+                        page.cropBox.lowerLeft = (30, 820)
+                        page.cropBox.lowerRight = (80, 820)
+                        page.cropBox.upperLeft = (30, 80)
+                        page.cropBox.upperRight = (80, 80)
+                        output.addPage(page)
+                    with open(f"extracted_data/date_{files}".format(file_base_name), "wb") as out_f:
+                        output.write(out_f)
+
+                    for i in range(numPages):
+                        page = input1.getPage(i)
+                        page.cropBox.lowerLeft = (360, 820)
+                        page.cropBox.lowerRight = (410, 820)
+                        page.cropBox.upperLeft = (360, 80)
+                        page.cropBox.upperRight = (410, 80)
+                        output.addPage(page)
+                    with open(f"extracted_data/avg_glucose{files}".format(file_base_name), "wb") as out_f:
+                        output.write(out_f)
 
 
 app = Selenium_Chrome_Class(
