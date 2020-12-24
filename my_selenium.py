@@ -101,7 +101,7 @@ class Selenium_Chrome_Class():
             else:
                 continue
 
-    def scrape_pdfs(self):
+    def scrape_pdfs(self, metric):
         data = []
         for files in os.listdir(final_directory):
             if files.endswith(".pdf"):
@@ -119,31 +119,34 @@ class Selenium_Chrome_Class():
                     pdfWriter.write(f)
                     f.close()
 
-                with open('{0}.pdf'.format(file_base_name), "rb") as in_f:
-                    input1 = PdfFileReader(in_f)
-                    output = PdfFileWriter()
-                    numPages = input1.getNumPages()
-                    print("document has %s pages." % numPages)
+                if (metric == 'avg'):
+                    with open('{0}.pdf'.format(file_base_name), "rb") as in_f:
+                        input1 = PdfFileReader(in_f)
+                        output = PdfFileWriter()
+                        output_two = PdfFileWriter()
+                        numPages = input1.getNumPages()
 
-                    for i in range(numPages):
-                        page = input1.getPage(i)
-                        page.cropBox.lowerLeft = (30, 820)
-                        page.cropBox.lowerRight = (80, 820)
-                        page.cropBox.upperLeft = (30, 80)
-                        page.cropBox.upperRight = (80, 80)
-                        output.addPage(page)
-                    with open(f"extracted_data/date_{files}".format(file_base_name), "wb") as out_f:
-                        output.write(out_f)
+                        for i in range(numPages):
+                            page = input1.getPage(i)
+                            page.cropBox.lowerLeft = (30, 820)
+                            page.cropBox.lowerRight = (80, 820)
+                            page.cropBox.upperLeft = (30, 80)
+                            page.cropBox.upperRight = (80, 80)
+                            output.addPage(page)
 
-                    for i in range(numPages):
-                        page = input1.getPage(i)
-                        page.cropBox.lowerLeft = (360, 820)
-                        page.cropBox.lowerRight = (410, 820)
-                        page.cropBox.upperLeft = (360, 80)
-                        page.cropBox.upperRight = (410, 80)
-                        output.addPage(page)
-                    with open(f"extracted_data/avg_glucose{files}".format(file_base_name), "wb") as out_f:
-                        output.write(out_f)
+                        with open(f"extracted_data/date_{files}".format(file_base_name), "wb") as out_f:
+                            output.write(out_f)
+
+                        for i in range(numPages):
+                            page_two = input1.getPage(i)
+                            page_two.cropBox.lowerLeft = (360, 820)
+                            page_two.cropBox.lowerRight = (410, 820)
+                            page_two.cropBox.upperLeft = (360, 80)
+                            page_two.cropBox.upperRight = (410, 80)
+                            output_two.addPage(page_two)
+
+                        with open(f"extracted_data/avg_glucose{files}".format(file_base_name), "wb") as out_f:
+                            output.write(out_f)
 
 
 app = Selenium_Chrome_Class(
@@ -154,4 +157,4 @@ app = Selenium_Chrome_Class(
 # app.go_to_patients_page()
 # app.patients_table()
 # app.move_files()
-app.scrape_pdfs()
+app.scrape_pdfs('avg')
