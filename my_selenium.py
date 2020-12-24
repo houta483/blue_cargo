@@ -104,7 +104,7 @@ class Selenium_Chrome_Class():
             else:
                 continue
 
-    def scrape_pdfs(self, metric):
+    def preprocess_pdfs(self, metric):
         data = []
         for files in os.listdir(final_directory):
             file_path_to_scrape = os.path.join(final_directory, files)
@@ -129,6 +129,17 @@ class Selenium_Chrome_Class():
                 elif (metric == 'max'):
                     print('add code here for daily max')
 
+    def read_preprocessed_pdfs(self):
+        extacted_data_folder = "preprocessed_data"
+        for files in os.listdir(extacted_data_folder):
+            file_path_to_scrape = os.path.join(final_directory, files)
+            text = textract.process(file_path_to_scrape)
+            text = str(text, 'utf-8')
+            f = open(
+                "/Users/Tanner/code/products/glucose/extracted_data/extracted_data.txt", "a")
+            f.write(text)
+            f.close()
+
 
 app = Selenium_Chrome_Class(
     username="stevenhoughtonjr1@gmail.com", password=os.environ['GLUCOSE_PASSWORD'], current_url="https://www.libreview.com/")
@@ -138,4 +149,5 @@ app = Selenium_Chrome_Class(
 # app.go_to_patients_page()
 # app.patients_table()
 # app.move_files()
-app.scrape_pdfs('avg')
+app.preprocess_pdfs('avg')
+app.read_preprocessed_pdfs()
