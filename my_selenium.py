@@ -116,28 +116,22 @@ class Selenium_Chrome_Class():
                 pdfWriter = PdfFileWriter()
                 print(pdf.numPages)
 
-                # This adds the pages
-#                for page_num in daily_log_pages:
                 for page_num in range(pdf.numPages):
-                    print(page_num)
                     pdfWriter.addPage(pdf.getPage(page_num))
 
                 with open(f"{file_base_name}.pdf", 'wb') as f:
-                    # THIS WRITES ALL THE PAGES TO THE BLANK PAGES
-                    # /Users/Tanner/code/products/glucose/pdf_unformatted_data/steven_glucose.pdf
                     pdfWriter.write(f)
                     f.close()
 
                 if (metric == 'avg'):
                     with open(f"{file_base_name}.pdf", "rb") as in_f:
-                        print('here')
-                        # THIS READS ALL THE PAGES IN THE PDF FILE
                         input_one = PdfFileReader(in_f)
                         output = PdfFileWriter()
                         output_two = PdfFileWriter()
                         numPages = input_one.getNumPages()
-                        print(input_one.getPage(1))
-                        print(output.getPage(1))
+
+                        print(input_one.getPage(1).extractText())
+                     #   print(output.getPage(1))
 
                         for i in range(numPages):
                             page = input_one.getPage(i)
@@ -174,4 +168,4 @@ app = Selenium_Chrome_Class(
 # app.go_to_patients_page()
 # app.patients_table()
 # app.move_files()
-app.scrape_pdfs('max')
+app.scrape_pdfs('avg')
