@@ -12,7 +12,7 @@ from helper_functions import helper_functions
 import pdftotext
 
 os.environ["GLUCOSE_PASSWORD"] = "French44!"
-final_directory = "/Users/Tanner/code/products/glucose/pdf_unformatted_data"
+final_directory = "/Users/Tanner/code/products/glucose/original_data"
 PATH = "/Users/Tanner/utils/chromedriver"
 # driver = webdriver.Chrome(PATH)
 
@@ -106,71 +106,25 @@ class Selenium_Chrome_Class():
 
     def scrape_pdfs(self, metric):
         data = []
-        # final_directory = "/Users/Tanner/code/products/glucose/pdf_unformatted_data"
         for files in os.listdir(final_directory):
             file_path_to_scrape = os.path.join(final_directory, files)
+            pdfWriter = PdfFileWriter()
+            writable_pdf = PdfFileReader(file_path_to_scrape)
+
             if files.endswith(".pdf"):
                 with open(file_path_to_scrape, "rb") as f:
                     pdf = pdftotext.PDF(f)
 
-                print(len(pdf))
-
-                # Iterate over all the pages
-                for page in pdf:
-                    print(page)
-
-                # Read some individual pages
-                print(pdf[0])
-                print(pdf[1])
-
-                pdf = PdfFileReader(file_path_to_scrape)
-                first_page = pdf.getPage(1)
-                # daily_log_pages = [pdf.numPages-3, pdf.numPages-2]
-                pdfWriter = PdfFileWriter()
-
-                for page_num in range(pdf.numPages):
-                    pdfWriter.addPage(pdf.getPage(page_num))
-
-                with open(file_path_to_scrape, 'wb') as f:
-                    pdfWriter.write(f)
-                    f.close()
-
                 if (metric == 'avg'):
-                    with open(file_path_to_scrape, "rb") as in_f:
-                        input_one = PdfFileReader(in_f)
-                        output = PdfFileWriter()
-                        output_two = PdfFileWriter()
-                        numPages = input_one.getNumPages()
+                    pages = helper_functions.find_correct_pages(
+                        "Weekly Summary", pdf)
 
-                        for i in range(numPages):
-                            page = input_one.getPage(i)
-                            print(page.extractText())
-                            page.cropBox.lowerLeft = (30, 820)
-                            page.cropBox.lowerRight = (80, 820)
-                            page.cropBox.upperLeft = (30, 80)
-                            page.cropBox.upperRight = (80, 80)
-                            output.addPage(page)
+                    new_pdf = helper_functions.create_new_pdf(
+                        pages=pages, writable_pdf=writable_pdf,
+                        where_to_save_pdf="truncated_data")
 
-                        # with open(f"extracted_data/date_{files}".format(file_base_name), "wb") as out_f:
-                        #    output.write(out_f)
-
-                        for i in range(numPages):
-                            page_two = input_one.getPage(i)
-                            page_two.cropBox.lowerLeft = (360, 820)
-                            page_two.cropBox.lowerRight = (410, 820)
-                            page_two.cropBox.upperLeft = (360, 80)
-                            page_two.cropBox.upperRight = (410, 80)
-                            output_two.addPage(page_two)
-
-                        # with open(f"extracted_data/avg_glucose{files}".format(file_base_name), "wb") as out_f:
-                        #    output.write(out_f)
-
-                            file_path_to_scrape = os.path.join(
-                                final_directory, files)
-                            text = textract.process(
-                                "/Users/Tanner/code/products/glucose/pdf_unformatted_data/StevenHoughton_12-24-2020.pdf")
-                            text = str(text, 'utf-8')
-                            print(text)
+                    helper_functions.trim_the_new_pdf(
+                        path_to_cut=new_pdf, files=files)
 
                 elif (metric == 'max'):
                     print('add code here for daily max')
