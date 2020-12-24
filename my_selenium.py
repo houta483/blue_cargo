@@ -103,50 +103,64 @@ class Selenium_Chrome_Class():
 
     def scrape_pdfs(self, metric):
         data = []
+        # final_directory = "/Users/Tanner/code/products/glucose/pdf_unformatted_data"
         for files in os.listdir(final_directory):
             if files.endswith(".pdf"):
                 file_path_to_scrape = os.path.join(final_directory, files)
-                pdf_file_path = file_path_to_scrape
-                file_base_name = pdf_file_path.replace('.pdf', '')
-                pdf = PdfFileReader(pdf_file_path)
-                daily_log_pages = [pdf.numPages-3, pdf.numPages-2]
+                # /Users/Tanner/code/products/glucose/pdf_unformatted_data/steven_glucose.pdf
+                print(file_path_to_scrape)
+                file_base_name = file_path_to_scrape.replace('.pdf', '')
+                pdf = PdfFileReader(file_path_to_scrape)
+                print(file_base_name)
+                #daily_log_pages = [pdf.numPages-3, pdf.numPages-2]
                 pdfWriter = PdfFileWriter()
+                print(pdf.numPages)
 
-                for page_num in daily_log_pages:
+                # This adds the pages
+#                for page_num in daily_log_pages:
+                for page_num in range(pdf.numPages):
+                    print(page_num)
                     pdfWriter.addPage(pdf.getPage(page_num))
 
-                with open('{0}.pdf'.format(file_base_name), 'wb') as f:
+                with open(f"{file_base_name}.pdf", 'wb') as f:
+                    # THIS WRITES ALL THE PAGES TO THE BLANK PAGES
+                    # /Users/Tanner/code/products/glucose/pdf_unformatted_data/steven_glucose.pdf
                     pdfWriter.write(f)
                     f.close()
 
                 if (metric == 'avg'):
-                    with open('{0}.pdf'.format(file_base_name), "rb") as in_f:
-                        input1 = PdfFileReader(in_f)
+                    with open(f"{file_base_name}.pdf", "rb") as in_f:
+                        print('here')
+                        # THIS READS ALL THE PAGES IN THE PDF FILE
+                        input_one = PdfFileReader(in_f)
                         output = PdfFileWriter()
                         output_two = PdfFileWriter()
-                        numPages = input1.getNumPages()
+                        numPages = input_one.getNumPages()
+                        print(input_one.getPage(1))
+                        print(output.getPage(1))
 
                         for i in range(numPages):
-                            page = input1.getPage(i)
+                            page = input_one.getPage(i)
+                            print(page.extractText())
                             page.cropBox.lowerLeft = (30, 820)
                             page.cropBox.lowerRight = (80, 820)
                             page.cropBox.upperLeft = (30, 80)
                             page.cropBox.upperRight = (80, 80)
                             output.addPage(page)
 
-                        with open(f"extracted_data/date_{files}".format(file_base_name), "wb") as out_f:
-                            output.write(out_f)
+                        # with open(f"extracted_data/date_{files}".format(file_base_name), "wb") as out_f:
+                        #    output.write(out_f)
 
                         for i in range(numPages):
-                            page_two = input1.getPage(i)
+                            page_two = input_one.getPage(i)
                             page_two.cropBox.lowerLeft = (360, 820)
                             page_two.cropBox.lowerRight = (410, 820)
                             page_two.cropBox.upperLeft = (360, 80)
                             page_two.cropBox.upperRight = (410, 80)
                             output_two.addPage(page_two)
 
-                        with open(f"extracted_data/avg_glucose{files}".format(file_base_name), "wb") as out_f:
-                            output.write(out_f)
+                        # with open(f"extracted_data/avg_glucose{files}".format(file_base_name), "wb") as out_f:
+                        #    output.write(out_f)
 
                 elif (metric == 'max'):
                     print('add code here for daily max')
@@ -160,4 +174,4 @@ app = Selenium_Chrome_Class(
 # app.go_to_patients_page()
 # app.patients_table()
 # app.move_files()
-app.scrape_pdfs('avg')
+app.scrape_pdfs('max')
