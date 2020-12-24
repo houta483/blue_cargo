@@ -1,3 +1,5 @@
+from six.moves.urllib.request import urlopen
+import io
 from selenium import webdriver
 import os
 import time
@@ -7,6 +9,7 @@ import shutil
 from PyPDF2 import PdfFileReader, PdfFileWriter
 import textract
 from helper_functions import helper_functions
+import pdftotext
 
 os.environ["GLUCOSE_PASSWORD"] = "French44!"
 final_directory = "/Users/Tanner/code/products/glucose/pdf_unformatted_data"
@@ -105,33 +108,39 @@ class Selenium_Chrome_Class():
         data = []
         # final_directory = "/Users/Tanner/code/products/glucose/pdf_unformatted_data"
         for files in os.listdir(final_directory):
+            file_path_to_scrape = os.path.join(final_directory, files)
             if files.endswith(".pdf"):
-                file_path_to_scrape = os.path.join(final_directory, files)
-                # /Users/Tanner/code/products/glucose/pdf_unformatted_data/steven_glucose.pdf
-                print(file_path_to_scrape)
-                file_base_name = file_path_to_scrape.replace('.pdf', '')
+                with open(file_path_to_scrape, "rb") as f:
+                    pdf = pdftotext.PDF(f)
+
+                print(len(pdf))
+
+                # Iterate over all the pages
+                for page in pdf:
+                    print(page)
+
+                # Read some individual pages
+                print(pdf[0])
+                print(pdf[1])
+
                 pdf = PdfFileReader(file_path_to_scrape)
-                print(file_base_name)
-                #daily_log_pages = [pdf.numPages-3, pdf.numPages-2]
+                first_page = pdf.getPage(1)
+                # daily_log_pages = [pdf.numPages-3, pdf.numPages-2]
                 pdfWriter = PdfFileWriter()
-                print(pdf.numPages)
 
                 for page_num in range(pdf.numPages):
                     pdfWriter.addPage(pdf.getPage(page_num))
 
-                with open(f"{file_base_name}.pdf", 'wb') as f:
+                with open(file_path_to_scrape, 'wb') as f:
                     pdfWriter.write(f)
                     f.close()
 
                 if (metric == 'avg'):
-                    with open(f"{file_base_name}.pdf", "rb") as in_f:
+                    with open(file_path_to_scrape, "rb") as in_f:
                         input_one = PdfFileReader(in_f)
                         output = PdfFileWriter()
                         output_two = PdfFileWriter()
                         numPages = input_one.getNumPages()
-
-                        print(input_one.getPage(1).extractText())
-                     #   print(output.getPage(1))
 
                         for i in range(numPages):
                             page = input_one.getPage(i)
@@ -155,6 +164,13 @@ class Selenium_Chrome_Class():
 
                         # with open(f"extracted_data/avg_glucose{files}".format(file_base_name), "wb") as out_f:
                         #    output.write(out_f)
+
+                            file_path_to_scrape = os.path.join(
+                                final_directory, files)
+                            text = textract.process(
+                                "/Users/Tanner/code/products/glucose/pdf_unformatted_data/StevenHoughton_12-24-2020.pdf")
+                            text = str(text, 'utf-8')
+                            print(text)
 
                 elif (metric == 'max'):
                     print('add code here for daily max')
