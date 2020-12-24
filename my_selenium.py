@@ -148,6 +148,9 @@ class Selenium_Chrome_Class():
                         with open(f"extracted_data/avg_glucose{files}".format(file_base_name), "wb") as out_f:
                             output.write(out_f)
 
+                elif (metric == 'max'):
+                    print('add code here for daily max')
+
 
 app = Selenium_Chrome_Class(
     username="stevenhoughtonjr1@gmail.com", password=os.environ['GLUCOSE_PASSWORD'], current_url="https://www.libreview.com/")
