@@ -37,7 +37,7 @@ def trim_the_new_pdf(path_to_cut, files):
             page.cropBox.upperRight = (80, 80)
             output.addPage(page)
 
-        with open(f"extracted_data/date_{files}".format(path_to_cut), "wb") as out_f:
+        with open(f"preprocessed_data/date_{files}".format(path_to_cut), "wb") as out_f:
             output.write(out_f)
 
         for i in range(numPages):
@@ -48,5 +48,5 @@ def trim_the_new_pdf(path_to_cut, files):
             page_two.cropBox.upperRight = (410, 80)
             output_two.addPage(page_two)
 
-        with open(f"extracted_data/avg_glucose_{files}".format(path_to_cut), "wb") as out_f:
+        with open(f"preprocessed_data/avg_glucose_{files}".format(path_to_cut), "wb") as out_f:
             output.write(out_f)
