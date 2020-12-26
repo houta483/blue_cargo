@@ -132,6 +132,7 @@ class Selenium_Chrome_Class():
     def read_preprocessed_pdfs(self):
         extacted_data_folder = "preprocessed_data"
         for files in os.listdir(extacted_data_folder):
+
             file_path_to_scrape = os.path.join(extacted_data_folder, files)
             print(file_path_to_scrape)
             text = textract.process(file_path_to_scrape)

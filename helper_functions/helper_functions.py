@@ -35,11 +35,6 @@ def trim_the_new_pdf(path_to_cut, files):
             page.cropBox.lowerRight = (80, 820)
             page.cropBox.upperLeft = (30, 80)
             page.cropBox.upperRight = (80, 80)
-
-            page.trimBox.lowerLeft = (30, 820)
-            page.trimBox.lowerLeft = (80, 820)
-            page.trimBox.upperRight = (30, 80)
-            page.trimBox.upperRight = (80, 80)
             output.addPage(page)
 
         with open(f"preprocessed_data/date_{files}".format(path_to_cut), "wb") as out_f:
@@ -51,11 +46,6 @@ def trim_the_new_pdf(path_to_cut, files):
             page_two.cropBox.lowerRight = (410, 820)
             page_two.cropBox.upperLeft = (360, 80)
             page_two.cropBox.upperRight = (410, 80)
-
-            page_two.trimBox.lowerLeft = (30, 820)
-            page_two.trimBox.lowerLeft = (80, 820)
-            page_two.trimBox.upperRight = (30, 80)
-            page_two.trimBox.upperRight = (80, 80)
             output_two.addPage(page_two)
 
         with open(f"preprocessed_data/avg_glucose_{files}".format(path_to_cut), "wb") as out_f:
