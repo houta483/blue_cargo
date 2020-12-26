@@ -1,4 +1,5 @@
 from six.moves.urllib.request import urlopen
+import glob
 import io
 from selenium import webdriver
 import os
@@ -10,11 +11,16 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 import textract
 from helper_functions import helper_functions
 import pdftotext
+from pdf2docx import parse
+from PIL import Image
+import pytesseract
+import sys
+from pdf2image import convert_from_path
 
 os.environ["GLUCOSE_PASSWORD"] = "French44!"
 final_directory = "/Users/Tanner/code/products/glucose/original_data"
 PATH = "/Users/Tanner/utils/chromedriver"
-# driver = webdriver.Chrome(PATH)
+driver = webdriver.Chrome(PATH)
 
 
 class Selenium_Chrome_Class():
@@ -24,9 +30,11 @@ class Selenium_Chrome_Class():
         self.current_url = current_url
 
     def start_driver(self):
+        print('start_driver')
         driver.get("https://www.libreview.com/")
 
     def country_of_residence(self):
+        print('country_of_residence')
         driver.implicitly_wait(10)
         country_of_residence_element = driver.find_element_by_id(
             "country-select")
@@ -38,6 +46,7 @@ class Selenium_Chrome_Class():
         self.current_url = driver.current_url
 
     def populate_login_elements(self):
+        print('populate_login_element')
         login_element = driver.find_element_by_id("loginForm-email-input")
         password_element = driver.find_element_by_id(
             "loginForm-password-input")
@@ -48,11 +57,13 @@ class Selenium_Chrome_Class():
         login_button_element.click()
 
     def go_to_patients_page(self):
+        print('go_to_patients_page')
         patients_button_element = driver.find_element_by_id(
             "main-header-dashboard-icon")
         patients_button_element.click()
 
     def patients_table(self):
+        print('patients_table')
         x = 1
         time.sleep(10)
 
@@ -73,11 +84,18 @@ class Selenium_Chrome_Class():
             print('glucose_history_button')
             time.sleep(10)
 
-            glucose_reports_button = driver.find_element_by_xpath(
-                "//*[@id='pastGlucoseCard-report-button']")
-            glucose_reports_button.click()
-            print('glucose_repots_button')
-            time.sleep(10)
+            try:
+                glucose_reports_button = driver.find_element_by_id(
+                    "newGlucose-glucoseReports-button")
+                glucose_reports_button.click()
+                print('glucose_repots_button')
+                time.sleep(10)
+            except:
+                glucose_reports_button = driver.find_element_by_id(
+                    "pastGlucoseCard-report-button")
+                glucose_reports_button.click()
+                print('glucose_repots_button')
+                time.sleep(10)
 
             download_glucose_report_button = driver.find_element_by_id(
                 "reports-print-button")
@@ -88,11 +106,15 @@ class Selenium_Chrome_Class():
             x += 1
             driver.get("https://www.libreview.com/dashboard")
             time.sleep(10)
-            parameter = driver.find_element_by_xpath(
-                f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{x}]/td[1]/div")
-            # The data from all users is getting pulled and put into the Downloads file
+
+            try:
+                parameter = driver.find_element_by_xpath(
+                    f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{x}]/td[1]/div")
+            except:
+                parameter = False
 
     def move_files(self):
+        print('move_files')
         current_day = datetime.date.today()
         formatted_date = datetime.date.strftime(current_day, "%m-%d-%Y")
         starting_directory = "/Users/Tanner/Downloads"
@@ -105,6 +127,7 @@ class Selenium_Chrome_Class():
                 continue
 
     def preprocess_pdfs(self, metric):
+        print('preprocess_pdfs')
         data = []
         for files in os.listdir(final_directory):
             file_path_to_scrape = os.path.join(final_directory, files)
@@ -118,29 +141,42 @@ class Selenium_Chrome_Class():
                 if (metric == 'avg'):
                     pages = helper_functions.find_correct_pages(
                         "Weekly Summary", pdf)
+                    print(pages)
 
                     new_pdf = helper_functions.create_new_pdf(
                         pages=pages, writable_pdf=writable_pdf,
-                        where_to_save_pdf="truncated_data")
+                        where_to_save_pdf="truncated_data", person=files)
 
-                    helper_functions.trim_the_new_pdf(
-                        path_to_cut=new_pdf, files=files)
+                    helper_functions.crop_jpg(person=files)
 
                 elif (metric == 'max'):
                     print('add code here for daily max')
 
     def read_preprocessed_pdfs(self):
-        extacted_data_folder = "preprocessed_data"
-        for files in os.listdir(extacted_data_folder):
+        print('read_preprocessed_pdfs')
+        extacted_data_folder = "ocr_jpg_data"
 
+        for files in os.listdir(extacted_data_folder):
             file_path_to_scrape = os.path.join(extacted_data_folder, files)
-            print(file_path_to_scrape)
-            text = textract.process(file_path_to_scrape)
-            text = str(text, 'utf-8')
-            f = open(
-                "/Users/Tanner/code/products/glucose/extracted_data/extracted_data.txt", "a")
+            outfile = "extracted_data/extracted_data.txt"
+            f = open(outfile, "a")
+
+            text = str(
+                ((pytesseract.image_to_string(Image.open(file_path_to_scrape)))))
+            text = text.replace('-\n', '')
             f.write(text)
+
             f.close()
+
+    def clean_up(self):
+        print('clean_up')
+        list_of_dirs = [glob.glob('preprocessed_data/*'),
+                        glob.glob('truncated_data/*'),
+                        glob.glob('ocr_jpg_data/*')]
+
+        for directory in list_of_dirs:
+            for files in directory:
+                os.remove(files)
 
 
 app = Selenium_Chrome_Class(
@@ -151,5 +187,6 @@ app = Selenium_Chrome_Class(
 # app.go_to_patients_page()
 # app.patients_table()
 # app.move_files()
-app.preprocess_pdfs('avg')
-app.read_preprocessed_pdfs()
+# app.preprocess_pdfs('avg')
+# app.read_preprocessed_pdfs()
+app.clean_up()

@@ -1,7 +1,11 @@
 from PyPDF2 import PdfFileReader, PdfFileWriter
+from PIL import Image
+import os
+import fitz
 
 
 def find_correct_pages(metric, pdf):
+    print('find_corect_pages')
     pages = []
     for index, page in enumerate(pdf):
         if metric in page:
@@ -9,44 +13,48 @@ def find_correct_pages(metric, pdf):
     return pages
 
 
-def create_new_pdf(pages, writable_pdf, where_to_save_pdf):
+def create_new_pdf(pages, writable_pdf, where_to_save_pdf, person):
+    print('create_new_pdf')
     pdfWriter = PdfFileWriter()
 
     for page_num in pages:
         pdfWriter.addPage(writable_pdf.getPage(page_num))
 
-    with open(f"{where_to_save_pdf}/truncated_data.pdf", 'wb') as f:
+    with open(f"{where_to_save_pdf}/truncated_data_{person}.pdf", 'wb') as f:
         pdfWriter.write(f)
         f.close()
 
-    return(f"{where_to_save_pdf}/truncated_data.pdf")
+    pdffile = f"{where_to_save_pdf}/truncated_data_{person}.pdf"
+
+    for index in range(len(pages)):
+        doc = fitz.open(pdffile)
+        page = doc.loadPage(index)
+        pix = page.getPixmap()
+        output = f"preprocessed_data/{person}_outfile_page_number_{index}.png"
+        pix.writePNG(output)
 
 
-def trim_the_new_pdf(path_to_cut, files):
-    with open(path_to_cut, "rb") as in_f:
-        input_one = PdfFileReader(in_f)
-        output = PdfFileWriter()
-        output_two = PdfFileWriter()
-        numPages = input_one.getNumPages()
+def crop_jpg(person):
+    print('crop_jpg')
+    parent_folder = 'preprocessed_data'
 
-        for i in range(numPages):
-            page = input_one.getPage(i)
-            page.cropBox.lowerLeft = (30, 820)
-            page.cropBox.lowerRight = (80, 820)
-            page.cropBox.upperLeft = (30, 80)
-            page.cropBox.upperRight = (80, 80)
-            output.addPage(page)
+    for index, files in enumerate(os.listdir(parent_folder)):
+        file_path_to_crop = os.path.join(parent_folder, files)
+        im = Image.open(file_path_to_crop)
 
-        with open(f"preprocessed_data/date_{files}".format(path_to_cut), "wb") as out_f:
-            output.write(out_f)
+        left_date = 30
+        top_date = 100
+        right_date = 80
+        bottom_date = 680
 
-        for i in range(numPages):
-            page_two = input_one.getPage(i)
-            page_two.cropBox.lowerLeft = (360, 820)
-            page_two.cropBox.lowerRight = (410, 820)
-            page_two.cropBox.upperLeft = (360, 80)
-            page_two.cropBox.upperRight = (410, 80)
-            output_two.addPage(page_two)
+        left_glucose = 360
+        top_glucose = 100
+        right_glucose = 410
+        bottom_glucose = 680
 
-        with open(f"preprocessed_data/avg_glucose_{files}".format(path_to_cut), "wb") as out_f:
-            output.write(out_f)
+        im1 = im.crop((left_date, top_date, right_date, bottom_date))
+        im2 = im.crop((left_glucose, top_glucose,
+                       right_glucose, bottom_glucose))
+
+        im1.save(f"ocr_jpg_data/{person}_date_{index}.jpg", "JPEG")
+        im2.save(f"ocr_jpg_data/{person}_glucose_{index}.jpg", "JPEG")
