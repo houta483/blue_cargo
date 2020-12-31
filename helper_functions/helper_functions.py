@@ -58,7 +58,12 @@ def crop_jpg(person):
         im2 = im.crop((left_glucose, top_glucose,
                        right_glucose, bottom_glucose))
 
-        im1.save(
-            f"ocr_jpg_data/{ascii_lowercase[index]}_{person}_date_{index}.jpg", "JPEG", quality=95)
-        im2.save(
-            f"ocr_jpg_data/{ascii_lowercase[index]}_{person}_glucose_{index}.jpg", "JPEG", quality=95)
+        imgs = [im1, im2]
+
+        for indx, img in enumerate(imgs):
+            if (indx == 0):
+                img.save(
+                    f"ocr_jpg_data/{ascii_lowercase[len(ascii_lowercase) - (index + 1)]}_{person}_date_{index}.jpg", "JPEG", quality=95)
+            elif (indx == 1):
+                img.save(
+                    f"ocr_jpg_data/{ascii_lowercase[len(ascii_lowercase) - (index + 1)]}_{person}_glucose_{index}.jpg", "JPEG", quality=95)
