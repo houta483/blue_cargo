@@ -1,4 +1,6 @@
 from PyPDF2 import PdfFileReader, PdfFileWriter
+from string import ascii_lowercase
+
 from PIL import Image
 import os
 import fitz
@@ -30,7 +32,7 @@ def create_new_pdf(pages, writable_pdf, where_to_save_pdf, person):
         doc = fitz.open(pdffile)
         page = doc.loadPage(index)
         pix = page.getPixmap()
-        output = f"preprocessed_data/{person}_outfile_page_number_{index}.png"
+        output = f"preprocessed_data/{ascii_lowercase[index]}_{person}_outfile_page_number_{index}.png"
         pix.writePNG(output)
 
 
@@ -56,5 +58,7 @@ def crop_jpg(person):
         im2 = im.crop((left_glucose, top_glucose,
                        right_glucose, bottom_glucose))
 
-        im1.save(f"ocr_jpg_data/{person}_date_{index}.jpg", "JPEG")
-        im2.save(f"ocr_jpg_data/{person}_glucose_{index}.jpg", "JPEG")
+        im1.save(
+            f"ocr_jpg_data/{ascii_lowercase[index]}_{person}_date_{index}.jpg", "JPEG", quality=95)
+        im2.save(
+            f"ocr_jpg_data/{ascii_lowercase[index]}_{person}_glucose_{index}.jpg", "JPEG", quality=95)
