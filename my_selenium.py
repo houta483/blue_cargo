@@ -20,7 +20,7 @@ from pdf2image import convert_from_path
 os.environ["GLUCOSE_PASSWORD"] = "French44!"
 final_directory = "/Users/Tanner/code/products/glucose/original_data"
 PATH = "/Users/Tanner/utils/chromedriver"
-driver = webdriver.Chrome(PATH)
+# driver = webdriver.Chrome(PATH)
 
 
 class Selenium_Chrome_Class():
@@ -155,8 +155,9 @@ class Selenium_Chrome_Class():
     def read_preprocessed_pdfs(self):
         print('read_preprocessed_pdfs')
         extacted_data_folder = "ocr_jpg_data"
+        compiled_text = []
 
-        for files in os.listdir(extacted_data_folder):
+        for files in sorted(os.listdir(extacted_data_folder)):
             file_path_to_scrape = os.path.join(extacted_data_folder, files)
             outfile = "extracted_data/extracted_data.txt"
             f = open(outfile, "a")
@@ -164,9 +165,35 @@ class Selenium_Chrome_Class():
             text = str(
                 ((pytesseract.image_to_string(Image.open(file_path_to_scrape)))))
             text = text.replace('-\n', '')
-            f.write(text)
+            text = text.replace('\n', '')
+            text = text.replace('‘', '')
+            text = text.replace('\x0c', '')
+            compiled_text.append(text)
 
+            f.write(text)
             f.close()
+
+        for index, objects in enumerate(compiled_text):
+            months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            glucose_readings = []
+
+            if (index % 2 == 0):
+                print('this is the date')
+                print(objects)
+            else:
+                objects = [int(i) for i in objects]
+                print(objects)
+
+                for index, digit in enumerate(int(objects)):
+                    if (index % 2 == 0 and digit == 1):
+                        glucose_readings.append(object[index:index+2])
+                        del objects[index:index+2]
+                    else:
+                        glucose_readings.append(objects[index:index+1])
+                        del objects[index:index+1]
+
+        print(glucose_readings)
 
     def clean_up(self):
         print('clean_up')
