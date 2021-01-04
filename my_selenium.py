@@ -164,7 +164,9 @@ class Selenium_Chrome_Class():
 
         for index, objects in enumerate(complied_text):
             if (index % 2 == 0):
-                extracted_from_data_days = re.findall(r'[0-9]+', objects)
+                print('here is the day and months data')
+                print(objects)
+                extracted_from_data_days.extend(re.findall(r'[0-9]+', objects))
                 extracted_months = re.sub(r'[0-9]+', '', objects).split(" ")
 
                 for extracted_month in extracted_months:
@@ -185,8 +187,16 @@ class Selenium_Chrome_Class():
                         objects = objects.replace(objects[0], '', 1)
                     else:
                         objects = ''
-        print(extracted_from_data_days,
-              extracted_from_data_months, glucose_readings)
+            extracted_from_data_days = [int(day)
+                                        for day in extracted_from_data_days]
+            glucose_readings = [int(glucose_reading)
+                                for glucose_reading in glucose_readings]
+
+        corrected_months_and_days = helper_functions.extend_months(
+            extracted_from_data_days,
+            extracted_from_data_months,)
+
+        print(corrected_months_and_days)
 
     def clean_up(self):
         print('clean_up')
