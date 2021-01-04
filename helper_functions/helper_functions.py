@@ -1,9 +1,9 @@
-from PyPDF2 import PdfFileReader, PdfFileWriter
-from string import ascii_lowercase
-
-from PIL import Image
-import os
 import fitz
+import os
+from PIL import Image
+from string import ascii_lowercase
+from PyPDF2 import PdfFileReader, PdfFileWriter
+import pytesseract
 
 
 def find_correct_pages(metric, pdf):
@@ -67,3 +67,19 @@ def crop_jpg(person):
             elif (indx == 1):
                 img.save(
                     f"ocr_jpg_data/{ascii_lowercase[len(ascii_lowercase) - (index + 1)]}_{person}_glucose_{index}.jpg", "JPEG", quality=95)
+
+
+def compile_text(extacted_data_folder):
+    compiled_text = []
+
+    for files in sorted(os.listdir(extacted_data_folder)):
+        file_path_to_scrape = os.path.join(extacted_data_folder, files)
+        text = str(
+            ((pytesseract.image_to_string(Image.open(file_path_to_scrape)))))
+        text = text.replace('-\n', '')
+        text = text.replace('\n', '')
+        text = text.replace('‘', '')
+        text = text.replace('\x0c', '')
+        compiled_text.append(text)
+
+    return compiled_text

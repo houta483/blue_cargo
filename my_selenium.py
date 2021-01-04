@@ -1,4 +1,5 @@
 from six.moves.urllib.request import urlopen
+import re
 import glob
 import io
 from selenium import webdriver
@@ -152,48 +153,40 @@ class Selenium_Chrome_Class():
                 elif (metric == 'max'):
                     print('add code here for daily max')
 
-    def read_preprocessed_pdfs(self):
+    def read_preprocessed_pdfs(self, extracted_data_folder):
         print('read_preprocessed_pdfs')
-        extacted_data_folder = "ocr_jpg_data"
-        compiled_text = []
+        months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        glucose_readings = []
+        complied_text = helper_functions.compile_text(extracted_data_folder)
+        extracted_from_data_months = []
+        extracted_from_data_days = []
 
-        for files in sorted(os.listdir(extacted_data_folder)):
-            file_path_to_scrape = os.path.join(extacted_data_folder, files)
-            outfile = "extracted_data/extracted_data.txt"
-            f = open(outfile, "a")
-
-            text = str(
-                ((pytesseract.image_to_string(Image.open(file_path_to_scrape)))))
-            text = text.replace('-\n', '')
-            text = text.replace('\n', '')
-            text = text.replace('‘', '')
-            text = text.replace('\x0c', '')
-            compiled_text.append(text)
-
-            f.write(text)
-            f.close()
-
-        for index, objects in enumerate(compiled_text):
-            months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-            glucose_readings = []
-
+        for index, objects in enumerate(complied_text):
             if (index % 2 == 0):
-                print('this is the date')
-                print(objects)
+                extracted_from_data_days = re.findall(r'[0-9]+', objects)
+                extracted_months = re.sub(r'[0-9]+', '', objects).split(" ")
+
+                for extracted_month in extracted_months:
+                    for regular_months in months:
+                        if (regular_months in extracted_month):
+                            extracted_from_data_months.append(regular_months)
             else:
-                objects = [int(i) for i in objects]
-                print(objects)
-
-                for index, digit in enumerate(int(objects)):
-                    if (index % 2 == 0 and digit == 1):
-                        glucose_readings.append(object[index:index+2])
-                        del objects[index:index+2]
+                while len(objects) != 0:
+                    if (objects[0] == '1'):
+                        print('in the 100s')
+                        glucose_readings.append(objects[0:3])
+                        objects = objects.replace(objects[0], '', 1)
+                        objects = objects.replace(objects[0], '', 1)
+                        objects = objects.replace(objects[0], '', 1)
+                    elif (objects[0] != '1' and len(objects) != 1):
+                        glucose_readings.append(objects[0:2])
+                        objects = objects.replace(objects[0], '', 1)
+                        objects = objects.replace(objects[0], '', 1)
                     else:
-                        glucose_readings.append(objects[index:index+1])
-                        del objects[index:index+1]
-
-        print(glucose_readings)
+                        objects = ''
+        print(extracted_from_data_days,
+              extracted_from_data_months, glucose_readings)
 
     def clean_up(self):
         print('clean_up')
@@ -215,5 +208,5 @@ app = Selenium_Chrome_Class(
 # app.patients_table()
 # app.move_files()
 app.preprocess_pdfs('avg')
-app.read_preprocessed_pdfs()
+app.read_preprocessed_pdfs(extracted_data_folder="ocr_jpg_data")
 # app.clean_up()
