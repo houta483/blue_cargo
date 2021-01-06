@@ -46,7 +46,7 @@ class Google_Sheets():
 
     def parse_csv_data(self):
         csv_data = []
-        for file in os.listdir("/Users/Tanner/Downloads"):
+        for file in os.listdir(""):
             if file.startswith("LV_StevenHoughton"):
                 filename = f"/Users/Tanner/Downloads/{file}"
                 print("This is the file we are looking for")

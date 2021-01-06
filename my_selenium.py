@@ -144,59 +144,16 @@ class Selenium_Chrome_Class():
                         "Weekly Summary", pdf)
                     print(pages)
 
-                    new_pdf = helper_functions.create_new_pdf(
+                    new_pdf = helper_functions.write_data_to_txt_file(
                         pages=pages, writable_pdf=writable_pdf,
                         where_to_save_pdf="truncated_data", person=files)
 
-                    helper_functions.crop_jpg(person=files)
+                    helper_functions.filter_txt_data(person=files)
+
+                    helper_functions.txt_to_csv()
 
                 elif (metric == 'max'):
                     print('add code here for daily max')
-
-    def read_preprocessed_pdfs(self, extracted_data_folder):
-        print('read_preprocessed_pdfs')
-        months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-        glucose_readings = []
-        complied_text = helper_functions.compile_text(extracted_data_folder)
-        extracted_from_data_months = []
-        extracted_from_data_days = []
-
-        for index, objects in enumerate(complied_text):
-            if (index % 2 == 0):
-                print('here is the day and months data')
-                print(objects)
-                extracted_from_data_days.extend(re.findall(r'[0-9]+', objects))
-                extracted_months = re.sub(r'[0-9]+', '', objects).split(" ")
-
-                for extracted_month in extracted_months:
-                    for regular_months in months:
-                        if (regular_months in extracted_month):
-                            extracted_from_data_months.append(regular_months)
-            else:
-                while len(objects) != 0:
-                    if (objects[0] == '1'):
-                        print('in the 100s')
-                        glucose_readings.append(objects[0:3])
-                        objects = objects.replace(objects[0], '', 1)
-                        objects = objects.replace(objects[0], '', 1)
-                        objects = objects.replace(objects[0], '', 1)
-                    elif (objects[0] != '1' and len(objects) != 1):
-                        glucose_readings.append(objects[0:2])
-                        objects = objects.replace(objects[0], '', 1)
-                        objects = objects.replace(objects[0], '', 1)
-                    else:
-                        objects = ''
-            extracted_from_data_days = [int(day)
-                                        for day in extracted_from_data_days]
-            glucose_readings = [int(glucose_reading)
-                                for glucose_reading in glucose_readings]
-
-        corrected_months_and_days = helper_functions.extend_months(
-            extracted_from_data_days,
-            extracted_from_data_months,)
-
-        print(corrected_months_and_days)
 
     def clean_up(self):
         print('clean_up')
@@ -218,5 +175,4 @@ app = Selenium_Chrome_Class(
 # app.patients_table()
 # app.move_files()
 app.preprocess_pdfs('avg')
-app.read_preprocessed_pdfs(extracted_data_folder="ocr_jpg_data")
 # app.clean_up()
