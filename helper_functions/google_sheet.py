@@ -42,7 +42,6 @@ class Google_Sheets():
             body=resource,
             valueInputOption="USER_ENTERED"
         ).execute()
-        # self.remove_used_files()
 
     def parse_csv_data(self):
         csv_data = []
@@ -56,12 +55,3 @@ class Google_Sheets():
                     csv_data.append(data)
 
         return csv_data
-
-    def remove_used_files(self):
-        for file in os.listdir("/Users/Tanner/Downloads"):
-            if file.startswith("LV_StevenHoughton"):
-                filename = f"/Users/Tanner/Downloads/{file}"
-                os.remove(filename)
-                print('Removed File')
-            else:
-                print('there is not a file')
