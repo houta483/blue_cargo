@@ -42,16 +42,11 @@ class Google_Sheets():
             body=resource,
             valueInputOption="USER_ENTERED"
         ).execute()
-        self.remove_used_files()
+        # self.remove_used_files()
 
     def parse_csv_data(self):
         csv_data = []
-        for file in os.listdir(""):
-            if file.startswith("LV_StevenHoughton"):
-                filename = f"/Users/Tanner/Downloads/{file}"
-                print("This is the file we are looking for")
-            else:
-                print('there is not a file')
+        filename = 'extracted_data/final_formatted_csv_data.csv'
 
         with open(filename) as csvDataFile:
             csvReader = csv.reader(csvDataFile)

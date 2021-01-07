@@ -11,6 +11,7 @@ import shutil
 from PyPDF2 import PdfFileReader, PdfFileWriter
 import textract
 from helper_functions import helper_functions
+from helper_functions import google_sheet
 import pdftotext
 from pdf2docx import parse
 from PIL import Image
@@ -21,7 +22,7 @@ from pdf2image import convert_from_path
 os.environ["GLUCOSE_PASSWORD"] = "French44!"
 final_directory = "/Users/Tanner/code/products/glucose/original_data"
 PATH = "/Users/Tanner/utils/chromedriver"
-# driver = webdriver.Chrome(PATH)
+driver = webdriver.Chrome(PATH)
 
 
 class Selenium_Chrome_Class():
@@ -123,11 +124,12 @@ class Selenium_Chrome_Class():
         for filename in os.listdir(starting_directory):
             if re.search(formatted_date, str(filename)) and filename.endswith(".pdf"):
                 file_path_to_move = os.path.join(starting_directory, filename)
-                shutil.move(file_path_to_move, final_directory)
+                filename = filename.replace(" ", "")
+                os.rename(file_path_to_move, f'original_data/{filename}')
             else:
                 continue
 
-    def preprocess_pdfs(self, metric):
+    def extract_data(self, metric):
         print('preprocess_pdfs')
         data = []
         for files in os.listdir(final_directory):
@@ -150,10 +152,15 @@ class Selenium_Chrome_Class():
 
                     helper_functions.filter_txt_data(person=files)
 
-                    helper_functions.txt_to_csv()
-
                 elif (metric == 'max'):
                     print('add code here for daily max')
+
+    def upload_data(self):
+        helper_functions.txt_to_csv()
+
+        google_sheets_module = google_sheet.Google_Sheets(scopes=['https://www.googleapis.com/auth/spreadsheets'],
+                                                          spreadsheet_id='1wwGhXxKS9dXEx6YM5p9qTRLtng1Rr6ASd-y07MCZaVs', sheet_range='Sheet1!A8:I1')
+        google_sheets_module.main()
 
     def clean_up(self):
         print('clean_up')
@@ -173,6 +180,7 @@ app = Selenium_Chrome_Class(
 # app.populate_login_elements()
 # app.go_to_patients_page()
 # app.patients_table()
-# app.move_files()
-app.preprocess_pdfs('avg')
+app.move_files()
+app.extract_data('avg')
+app.upload_data()
 # app.clean_up()

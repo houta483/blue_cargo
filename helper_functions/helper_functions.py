@@ -52,8 +52,8 @@ def filter_txt_data(person):
             if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
                 with open('extracted_data/filtered_text_data.txt', "a") as f:
                     line = line.replace('180', '')
-                    line = line.replace('  ', ' ')
-                    line = person + " " + line
+                    line = line.replace("  ", ' ')
+                    line = person + "  " + line
                     line = line.replace('_', '')
                     pattern = re.compile(r'\d{1,}-\d{1,}-\d{1,}.pdf ')
                     line = re.sub(pattern, '', line)
@@ -66,6 +66,5 @@ def txt_to_csv():
     print('txt_to_csv')
     dataframe = pd.read_csv(
         'extracted_data/filtered_text_data.txt', delimiter=' ')
-    dataframe.columns = ['First_Name', 'Last_Name',
-                         'Month', 'Day', 'Avg Glucose Level']
+    dataframe.columns = ['Name', 'Month', 'Day', 'Avg Glucose Level']
     dataframe.to_csv('extracted_data/final_formatted_csv_data.csv')
