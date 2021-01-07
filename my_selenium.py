@@ -30,6 +30,7 @@ class Selenium_Chrome_Class():
         self.username = username
         self.password = password
         self.current_url = current_url
+        self.extracted_first_and_last_names = []
 
     def start_driver(self):
         print('start_driver')
@@ -129,9 +130,11 @@ class Selenium_Chrome_Class():
             else:
                 continue
 
-    def extract_data(self, metric):
+    def create_truncated_data_files(self, metric):
+        # final_directory = "/Users/Tanner/code/products/glucose/original_data"
         print('preprocess_pdfs')
         data = []
+
         for files in os.listdir(final_directory):
             file_path_to_scrape = os.path.join(final_directory, files)
             pdfWriter = PdfFileWriter()
@@ -139,25 +142,24 @@ class Selenium_Chrome_Class():
 
             if files.endswith(".pdf"):
                 with open(file_path_to_scrape, "rb") as f:
-                    pdf = pdftotext.PDF(f)
+                    text_from_pdf = pdftotext.PDF(f)
 
-                if (metric == 'avg'):
-                    pages = helper_functions.find_correct_pages(
-                        "Weekly Summary", pdf)
-                    print(pages)
+            pages = helper_functions.find_correct_pages(
+                "Weekly Summary", text_from_pdf)
+            print(pages)
 
-                    new_pdf = helper_functions.write_data_to_txt_file(
-                        pages=pages, writable_pdf=writable_pdf,
-                        where_to_save_pdf="truncated_data", person=files)
+            helper_functions.create_truncated_data_files_helper_function(
+                pages=pages, writable_pdf=writable_pdf,
+                where_to_save_pdf="truncated_data", person=files)
 
-                    helper_functions.filter_txt_data(person=files)
+    def write_truncated_data_files_to_extracted_data(self):
+        helper_functions.write_to_extracted_data()
 
-                elif (metric == 'max'):
-                    print('add code here for daily max')
+    def filter_txt_data(self):
+        helper_functions.filter_extracted_data()
 
     def upload_data(self):
         helper_functions.txt_to_csv()
-
         google_sheets_module = google_sheet.Google_Sheets(scopes=['https://www.googleapis.com/auth/spreadsheets'],
                                                           spreadsheet_id='1wwGhXxKS9dXEx6YM5p9qTRLtng1Rr6ASd-y07MCZaVs', sheet_range='Sheet1!A8:I1')
         google_sheets_module.main()
@@ -181,6 +183,8 @@ app = Selenium_Chrome_Class(
 # app.go_to_patients_page()
 # app.patients_table()
 app.move_files()
-app.extract_data('avg')
+app.create_truncated_data_files('avg')
+app.write_truncated_data_files_to_extracted_data()
+app.filter_txt_data()
 app.upload_data()
 # app.clean_up()

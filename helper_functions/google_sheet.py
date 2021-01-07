@@ -46,13 +46,16 @@ class Google_Sheets():
 
     def parse_csv_data(self):
         csv_data = []
-        filename = 'extracted_data/final_formatted_csv_data.csv'
+        for final_csv_data_file in os.listdir('./final_csv_data'):
+            file_path = os.path.join('./final_csv_data', final_csv_data_file)
 
-        with open(filename) as csvDataFile:
-            csvReader = csv.reader(csvDataFile)
-            for data in csvReader:
-                csv_data.append(data)
-            return csv_data
+            with open(file_path) as csv_data_file:
+                csv_reader = csv.reader(csv_data_file)
+
+                for data in csv_reader:
+                    csv_data.append(data)
+
+        return csv_data
 
     def remove_used_files(self):
         for file in os.listdir("/Users/Tanner/Downloads"):
