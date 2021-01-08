@@ -1,4 +1,3 @@
-import fitz
 import os
 from PIL import Image
 from string import ascii_lowercase
