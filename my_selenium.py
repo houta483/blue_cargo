@@ -18,11 +18,16 @@ from PIL import Image
 import pytesseract
 import sys
 from pdf2image import convert_from_path
+from helper_functions.selenium_helper import WebDriver
+from selenium.webdriver.chrome.options import Options
+from selenium import webdriver
+from helper_functions import selenium_helper
+
 
 os.environ["GLUCOSE_PASSWORD"] = "French44!"
-final_directory = "/Users/Tanner/code/products/glucose/original_data"
-PATH = "./utils/chromedriver"
-driver = webdriver.Chrome(PATH)
+final_directory = "./original_data"
+chrome_options = selenium_helper.set_chrome_options()
+driver = webdriver.Chrome(options=chrome_options)
 
 
 class Selenium_Chrome_Class:
@@ -124,7 +129,7 @@ class Selenium_Chrome_Class:
         print("move_files")
         current_day = datetime.date.today()
         formatted_date = datetime.date.strftime(current_day, "%m-%d-%Y")
-        starting_directory = "/Users/Tanner/Downloads"
+        starting_directory = "./Downloads"
 
         for filename in os.listdir(starting_directory):
             if re.search(formatted_date, str(filename)) and filename.endswith(".pdf"):
@@ -185,20 +190,24 @@ class Selenium_Chrome_Class:
             for files in directory:
                 os.remove(files)
 
+    def run(self):
+        self.start_driver()
+        self.country_of_residence()
+        self.populate_login_elements()
+        self.go_to_patients_page()
+        self.patients_table
+        self.move_files()
+        self.create_truncated_data_files("avg")
+        self.write_truncated_data_files_to_extracted_data()
+        self.filter_txt_data()
+        self.upload_data()
+
 
 app = Selenium_Chrome_Class(
     username="stevenhoughtonjr1@gmail.com",
     password=os.environ["GLUCOSE_PASSWORD"],
     current_url="https://www.libreview.com/",
 )
-# app.start_driver()
-# app.country_of_residence()
-# app.populate_login_elements()
-# app.go_to_patients_page()
-# app.patients_table()
-app.move_files()
-app.create_truncated_data_files("avg")
-app.write_truncated_data_files_to_extracted_data()
-app.filter_txt_data()
-app.upload_data()
+
+app.run()
 # app.clean_up()
