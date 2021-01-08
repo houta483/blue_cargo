@@ -1,14 +1,14 @@
 Pillow==7.0.0
+numpy==1.16.0
 PyPDF2==1.26.0
 pytesseract==0.3.7
 tabula-py==2.2.0
-pdfplumber==0.5.25
+pdfplumber
 tabula-py==2.2.0
 pandas==1.0.3
-pdfminer.six==20200517
 six==1.12.0
 selenium==3.141.0
-textract==1.6.3
+textract
 pdftotext==2.1.5
 pdf2docx==0.4.6
 pdf2image==1.14.0
@@ -20,3 +20,4 @@ google-auth-httplib2==0.0.3
 google-auth-oauthlib==0.4.
 google-api-core==1.16.0
 google-api-python-client==1.8.3
+pdfminer.six
