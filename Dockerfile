@@ -17,8 +17,8 @@ RUN apt-get install -yqq unzip
 
 # Download the Chrome Driver
 RUN wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/`\
-    curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`\
-    /chromedriver_linux64.zip
+    curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE\
+    `/chromedriver_linux64.zip
 
 # Unzip the Chrome Driver into /usr/local/bin directory
 RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
@@ -53,5 +53,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 # RUN chmod +x /usr/local/bin/chromedriver
 
 # Set env variables
-ENV GLUCOSE_PASSWORD French44!
 CMD [ "python", "my_selenium.py" ]

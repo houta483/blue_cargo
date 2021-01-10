@@ -18,13 +18,11 @@ from PIL import Image
 import pytesseract
 import sys
 from pdf2image import convert_from_path
-from helper_functions.selenium_helper import WebDriver
 from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from helper_functions import selenium_helper
 
 
-os.environ["GLUCOSE_PASSWORD"] = "French44!"
 final_directory = "./original_data"
 chrome_options = selenium_helper.set_chrome_options()
 driver = webdriver.Chrome(options=chrome_options)
@@ -173,7 +171,7 @@ class Selenium_Chrome_Class:
         helper_functions.txt_to_csv()
         google_sheets_module = google_sheet.Google_Sheets(
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
-            spreadsheet_id="1wwGhXxKS9dXEx6YM5p9qTRLtng1Rr6ASd-y07MCZaVs",
+            spreadsheet_id=os.environ["SPREADSHEET_ID"],
             sheet_range="Sheet1!A8:I1",
         )
         google_sheets_module.main()
@@ -204,7 +202,7 @@ class Selenium_Chrome_Class:
 
 
 app = Selenium_Chrome_Class(
-    username="stevenhoughtonjr1@gmail.com",
+    username=os.environ["USERNAME"],
     password=os.environ["GLUCOSE_PASSWORD"],
     current_url="https://www.libreview.com/",
 )
