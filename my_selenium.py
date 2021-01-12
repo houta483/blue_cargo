@@ -1,3 +1,4 @@
+from datetime import timedelta
 from six.moves.urllib.request import urlopen
 import re
 import glob
@@ -237,3 +238,7 @@ app = Selenium_Chrome_Class(
 )
 
 app.run()
+
+while True:
+    time.sleep(3600)
+    app.run()

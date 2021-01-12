@@ -55,6 +55,7 @@ def filter_extracted_data():
     for extracted_data_files in sorted(os.listdir('./extracted_data')):
         first_and_last_name = extracted_data_files.split('_')[0:2]
         file_path = os.path.join('./extracted_data', extracted_data_files)
+
         with open(file_path, 'r') as extracted_data_files_to_edit:
             lines = extracted_data_files_to_edit.readlines()
 
@@ -66,8 +67,14 @@ def filter_extracted_data():
                         line = f"{first_and_last_name[0]} {first_and_last_name[1]} " + line
                         line = line.strip("\n")
                         line = line.split(" ")
+
+                        while (len(line) < 5):
+                            line.append(" ")
+
+                        if (line[4] == " "):
+                            line[4] = float("NaN")
+
                         final_text = f"{line[0]} {line[1]} {line[2]} {line[3]} {line[4]}\n"
-                        print(final_text)
                         filtered_text_data.write(final_text)
 
 
