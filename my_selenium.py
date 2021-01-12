@@ -24,8 +24,17 @@ from helper_functions import selenium_helper
 
 
 final_directory = "./original_data"
-chrome_options = selenium_helper.set_chrome_options()
-driver = webdriver.Chrome(options=chrome_options)
+
+
+DOCKER_KEY = os.environ.get('AM_I_IN_A_DOCKER_CONTAINER', False)
+
+if DOCKER_KEY:
+    chrome_options = selenium_helper.set_chrome_options()
+    driver = webdriver.Chrome(options=chrome_options)
+    print('I am running in a Docker container')
+elif DOCKER_KEY == False:
+    driver = webdriver.Chrome('utils/chromedriver')
+    print('I am no local machine')
 
 
 class Selenium_Chrome_Class:
@@ -38,11 +47,16 @@ class Selenium_Chrome_Class:
     def start_driver(self):
         print("start_driver")
         driver.get("https://www.libreview.com/")
+        print('sleep 5')
+        time.sleep(5)
 
     def country_of_residence(self):
         print("country_of_residence")
-        driver.implicitly_wait(10)
-        country_of_residence_element = driver.find_element_by_id("country-select")
+        print("sleep 5")
+        time.sleep(5)
+
+        country_of_residence_element = driver.find_element_by_id(
+            "country-select")
         country_of_residence_usa = driver.find_element_by_xpath(
             "//*[@id='country-select']/option[47]"
         )
@@ -53,15 +67,23 @@ class Selenium_Chrome_Class:
 
     def populate_login_elements(self):
         print("populate_login_element")
+        print(self.username, self.password)
+        print('sleep 5')
+        time.sleep(5)
+
         login_element = driver.find_element_by_id("loginForm-email-input")
-        password_element = driver.find_element_by_id("loginForm-password-input")
-        login_button_element = driver.find_element_by_id("loginForm-submit-button")
+        password_element = driver.find_element_by_id(
+            "loginForm-password-input")
+        login_button_element = driver.find_element_by_id(
+            "loginForm-submit-button")
         login_element.send_keys(self.username)
         password_element.send_keys(self.password)
         login_button_element.click()
 
     def go_to_patients_page(self):
         print("go_to_patients_page")
+        print('sleep 5')
+        time.sleep(5)
         patients_button_element = driver.find_element_by_id(
             "main-header-dashboard-icon"
         )
@@ -78,7 +100,9 @@ class Selenium_Chrome_Class:
 
         while parameter:
             parameter.click()
-            profile_button = driver.find_element_by_id("profile-nav-button-container")
+            time.sleep(5)
+            profile_button = driver.find_element_by_id(
+                "profile-nav-button-container")
             profile_button.click()
             print("profile_button")
             time.sleep(10)
@@ -129,7 +153,7 @@ class Selenium_Chrome_Class:
         formatted_date = datetime.date.strftime(current_day, "%m-%d-%Y")
         starting_directory = "./Downloads"
 
-        for filename in os.listdir(starting_directory):
+        for filename in sorted(os.listdir(starting_directory)):
             if re.search(formatted_date, str(filename)) and filename.endswith(".pdf"):
                 file_path_to_move = os.path.join(starting_directory, filename)
                 filename = filename.replace(" ", "")
@@ -138,11 +162,10 @@ class Selenium_Chrome_Class:
                 continue
 
     def create_truncated_data_files(self, metric):
-        # final_directory = "/Users/Tanner/code/products/glucose/original_data"
         print("preprocess_pdfs")
         data = []
 
-        for files in os.listdir(final_directory):
+        for files in sorted(os.listdir(final_directory)):
             file_path_to_scrape = os.path.join(final_directory, files)
             pdfWriter = PdfFileWriter()
             writable_pdf = PdfFileReader(file_path_to_scrape)
@@ -151,7 +174,8 @@ class Selenium_Chrome_Class:
                 with open(file_path_to_scrape, "rb") as f:
                     text_from_pdf = pdftotext.PDF(f)
 
-            pages = helper_functions.find_correct_pages("Weekly Summary", text_from_pdf)
+            pages = helper_functions.find_correct_pages(
+                "Weekly Summary", text_from_pdf)
             print(pages)
 
             helper_functions.create_truncated_data_files_helper_function(
@@ -179,9 +203,13 @@ class Selenium_Chrome_Class:
     def clean_up(self):
         print("clean_up")
         list_of_dirs = [
+            glob.glob("Downloads"),
+            glob.glob("extracted_and_filtered_data/*"),
+            glob.glob("extracted_data/*"),
+            glob.glob("final_csv_data/*"),
+            glob.glob("original_data/*"),
             glob.glob("preprocessed_data/*"),
             glob.glob("truncated_data/*"),
-            glob.glob("ocr_jpg_data/*"),
         ]
 
         for directory in list_of_dirs:
@@ -193,12 +221,13 @@ class Selenium_Chrome_Class:
         self.country_of_residence()
         self.populate_login_elements()
         self.go_to_patients_page()
-        self.patients_table
+        self.patients_table()
         self.move_files()
         self.create_truncated_data_files("avg")
         self.write_truncated_data_files_to_extracted_data()
         self.filter_txt_data()
         self.upload_data()
+        self.clean_up()
 
 
 app = Selenium_Chrome_Class(
@@ -208,4 +237,3 @@ app = Selenium_Chrome_Class(
 )
 
 app.run()
-# app.clean_up()

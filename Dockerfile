@@ -35,6 +35,8 @@ WORKDIR /usr/src/app
 # Copy all files over
 COPY . . 
 
+ENV AM_I_IN_A_DOCKER_CONTAINER=True
+
 # Install all dependencies
 RUN apt-get update -y
 RUN apt-get install unzip -y
@@ -42,15 +44,6 @@ RUN apt-get install vim -y
 RUN apt-get install apt-utils -y
 RUN apt-get install build-essential libpoppler-cpp-dev pkg-config python-dev -y
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Install Chrome for Selenium
-# RUN curl https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /chrome.deb
-# RUN dpkg -i /chrome.deb || apt-get install -yf
-# RUN rm /chrome.deb
-
-# Install chromedriver for Selenium
-# RUN curl https://chromedriver.storage.googleapis.com/2.31/chromedriver_linux64.zip -o /usr/local/bin/chromedriver
-# RUN chmod +x /usr/local/bin/chromedriver
 
 # Set env variables
 CMD [ "python", "my_selenium.py" ]
