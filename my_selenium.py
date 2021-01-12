@@ -149,6 +149,7 @@ class Selenium_Chrome_Class:
                 parameter = False
 
     def move_files(self):
+        driver.quit()
         print("move_files")
         current_day = datetime.date.today()
         formatted_date = datetime.date.strftime(current_day, "%m-%d-%Y")
