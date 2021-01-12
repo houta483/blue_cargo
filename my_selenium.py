@@ -205,7 +205,7 @@ class Selenium_Chrome_Class:
     def clean_up(self):
         print("clean_up")
         list_of_dirs = [
-            glob.glob("Downloads"),
+            glob.glob("Downloads/*"),
             glob.glob("extracted_and_filtered_data/*"),
             glob.glob("extracted_data/*"),
             glob.glob("final_csv_data/*"),
