@@ -239,7 +239,3 @@ app = Selenium_Chrome_Class(
 )
 
 app.run()
-
-while True:
-    time.sleep(3600)
-    app.run()
