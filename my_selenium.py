@@ -46,7 +46,6 @@ class Selenium_Chrome_Class:
         self.username = username
         self.password = password
         self.current_url = current_url
-        self.extracted_first_and_last_names = []
 
     def start_driver(self):
         print("start_driver")
@@ -205,7 +204,8 @@ class Selenium_Chrome_Class:
                 )
 
     def write_truncated_data_files_to_extracted_data(self, metric):
-        helper_functions.write_to_extracted_data(metric=metric)
+        helper_functions.write_to_extracted_data(
+            metric=metric)
 
     def filter_txt_data(self, metric):
         helper_functions.filter_extracted_data(metric=metric)
@@ -241,7 +241,7 @@ class Selenium_Chrome_Class:
         # self.populate_login_elements()
         # self.go_to_patients_page()
         # self.patients_table()
-        self.move_files()
+        # self.move_files()
         self.create_truncated_data_files(metric="max")
         self.write_truncated_data_files_to_extracted_data(metric="max")
         self.filter_txt_data(metric='max')
