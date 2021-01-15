@@ -20,22 +20,30 @@ def find_correct_pages(metric, pdf):
     return pages
 
 
-def create_truncated_data_files_helper_function(pages, writable_pdf, where_to_save_pdf, person):
+def create_truncated_data_files_helper_function(metric, pages, writable_pdf, where_to_save_pdf, person):
     print('write_data_to_txt_file')
     pdfWriter = PdfFileWriter()
     full_names = []
 
+    person = person.replace(".pdf", f"_{metric}.pdf")
+
     for page_num in pages:
         pdfWriter.addPage(writable_pdf.getPage(page_num))
 
-    with open(f"{where_to_save_pdf}/truncated_data_{person}", 'wb') as f:
-        pdfWriter.write(f)
-        f.close()
+    if (metric == 'avg'):
+        with open(f"{where_to_save_pdf}/truncated_data_avg_{person}", 'wb') as f:
+            pdfWriter.write(f)
+            f.close()
+
+    elif (metric == 'max'):
+        with open(f"{where_to_save_pdf}/truncated_data_max_{person}", 'wb') as f:
+            pdfWriter.write(f)
+            f.close()
 
 
-def write_to_extracted_data():
+def write_to_extracted_data(metric):
+    # TODO ADD SOMETHING HERE SO THAT WE CAN DIFFERENTIALTE BETWEEN MAX AND AVE
     for index, files in enumerate(sorted(os.listdir('./truncated_data'))):
-        # TODO -> USER MUST SUBMIT A FIRST AND LAST NAME
         file_path_to_scrape = os.path.join('./truncated_data', files)
         length_of_pdf = PdfFileReader(
             open(file_path_to_scrape, 'rb')).getNumPages()
@@ -50,7 +58,7 @@ def write_to_extracted_data():
                     f.write(text)
 
 
-def filter_extracted_data():
+def filter_extracted_data(metric):
     print('filter_txt_data')
     for extracted_data_files in sorted(os.listdir('./extracted_data')):
         first_and_last_name = extracted_data_files.split('_')[0:2]
@@ -60,22 +68,26 @@ def filter_extracted_data():
             lines = extracted_data_files_to_edit.readlines()
 
             for index, line in enumerate(lines):
-                if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
-                    with open(f'extracted_and_filtered_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
-                        line = line.replace('180', '')
-                        line = line.replace("  ", ' ')
-                        line = f"{first_and_last_name[0]} {first_and_last_name[1]} " + line
-                        line = line.strip("\n")
-                        line = line.split(" ")
+                if (metric == 'avg'):
+                    if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
+                        with open(f'extracted_and_filtered_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
+                            line = line.replace('180', '')
+                            line = line.replace("  ", ' ')
+                            line = f"{first_and_last_name[0]} {first_and_last_name[1]} " + line
+                            line = line.strip("\n")
+                            line = line.split(" ")
 
-                        while (len(line) < 5):
-                            line.append(" ")
+                            while (len(line) < 5):
+                                line.append(" ")
 
-                        if (line[4] == " "):
-                            line[4] = float("NaN")
+                            if (line[4] == " "):
+                                line[4] = float("NaN")
 
-                        final_text = f"{line[0]} {line[1]} {line[2]} {line[3]} {line[4]}\n"
-                        filtered_text_data.write(final_text)
+                            final_text = f"{line[0]} {line[1]} {line[2]} {line[3]} {line[4]}\n"
+                            filtered_text_data.write(final_text)
+
+                elif (metric == 'max'):
+                    print(line)
 
 
 def txt_to_csv():
