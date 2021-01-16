@@ -104,17 +104,8 @@ def filter_extracted_data(metric):
 
                 elif (metric == 'max'):
                     selected_month = ''
-                    print(len(line))
 
-                    if ((len(line) < 2) or ("Your PHO" in line) or ("__ L" in line) or ("_________ FreeStyl" in line) or ("Low Glucose" in line)
-                                or ("eaceimly" in line) or ("PA" in line) or ()
-                            ):
-                        continue
-
-                    elif ("12am 2am 4am 6am 8am 10am 12pm 2pm 4pm 6pm 8pm 10pm 12am" in line and (any(x not in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')))):
-                        continue
-
-                    elif any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
+                    if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
                         for month in ('Jan ', 'Feb ', 'Mar ', 'Apr ',
                                       'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec '):
                             if (month in line):
@@ -131,13 +122,41 @@ def filter_extracted_data(metric):
                                 line = line[0:index_of_times]
                                 line = line + os.linesep
 
-                            filtered_text_data.write(line)
+                            filtered_text_data.write(line.strip() + os.linesep)
 
                     else:
+                        if ("Low Glucose" in line):
+                            continue
+                        # ONLY NUMBERS
+                        line = re.sub(r"[^0-9 ]", '', line)
+                        # REMOVE WHITESPACE
+                        line = re.sub(r"\s{2,}", " ", line)
+
+                        line = line.strip()
+                        # SPLIT
                         line = line.split(" ")
 
+                        if (line[0] == ""):
+                            continue
+
+                        if not line:
+                            continue
+                        else:
+                            nums = [int(x) for x in line]
+
+                        # remove nums greater than 300 and less than 50
+                        nums = [x for x in nums if (50 < x < 300)]
+
+                        if not nums:
+                            continue
+                        else:
+                            max_num = max(nums)
+
+                        if (((len(nums) == 1) and ((nums[0] == 180) or (nums[0] == 70) or (nums[0] == " ")))):
+                            continue
+
                         with open(f'extracted_and_filtered_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
-                            filtered_text_data.write(line + os.linesep)
+                            filtered_text_data.write(str(max_num) + os.linesep)
 
 
 def txt_to_csv():
