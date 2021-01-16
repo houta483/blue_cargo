@@ -81,6 +81,8 @@ def filter_extracted_data(metric):
             lines = extracted_data_files_to_edit.readlines()
 
             for index, line in enumerate(lines):
+                print(line)
+                line = re.sub(r"[^A-Za-z0-9 ]+", '', line)
 
                 if (metric == 'avg'):
                     if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
@@ -102,7 +104,17 @@ def filter_extracted_data(metric):
 
                 elif (metric == 'max'):
                     selected_month = ''
-                    if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
+                    print(len(line))
+
+                    if ((len(line) < 2) or ("Your PHO" in line) or ("__ L" in line) or ("_________ FreeStyl" in line) or ("Low Glucose" in line)
+                                or ("eaceimly" in line) or ("PA" in line) or ()
+                            ):
+                        continue
+
+                    elif ("12am 2am 4am 6am 8am 10am 12pm 2pm 4pm 6pm 8pm 10pm 12am" in line and (any(x not in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')))):
+                        continue
+
+                    elif any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
                         for month in ('Jan ', 'Feb ', 'Mar ', 'Apr ',
                                       'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec '):
                             if (month in line):
@@ -120,6 +132,12 @@ def filter_extracted_data(metric):
                                 line = line + os.linesep
 
                             filtered_text_data.write(line)
+
+                    else:
+                        line = line.split(" ")
+
+                        with open(f'extracted_and_filtered_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
+                            filtered_text_data.write(line + os.linesep)
 
 
 def txt_to_csv():
