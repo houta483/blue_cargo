@@ -27,18 +27,18 @@ from helper_functions import selenium_helper
 final_directory = "./original_data"
 
 
-DOCKER_KEY = os.environ.get('AM_I_IN_A_DOCKER_CONTAINER', False)
+DOCKER_KEY = os.environ.get("AM_I_IN_A_DOCKER_CONTAINER", False)
 
 if DOCKER_KEY:
     chrome_options = selenium_helper.set_chrome_options()
     driver = webdriver.Chrome(options=chrome_options)
-    print('I am running in a Docker container')
+    print("I am running in a Docker container")
 elif DOCKER_KEY == False:
-    driver = webdriver.Chrome('utils/chromedriver')
+    driver = webdriver.Chrome("utils/chromedriver")
     os.environ["GLUCOSE_PASSWORD"] = "French44!"
     os.environ["USERNAME"] = "stevenhoughtonjr1@gmail.com"
     os.environ["SPREADSHEET_ID"] = "1wwGhXxKS9dXEx6YM5p9qTRLtng1Rr6ASd-y07MCZaVs"
-    print('I am on local machine')
+    print("I am on local machine")
 
 
 class Selenium_Chrome_Class:
@@ -50,7 +50,7 @@ class Selenium_Chrome_Class:
     def start_driver(self):
         print("start_driver")
         driver.get("https://www.libreview.com/")
-        print('sleep 5')
+        print("sleep 5")
         time.sleep(5)
 
     def country_of_residence(self):
@@ -71,7 +71,7 @@ class Selenium_Chrome_Class:
     def populate_login_elements(self):
         print("populate_login_element")
         print(self.username, self.password)
-        print('sleep 5')
+        print("sleep 5")
         time.sleep(5)
 
         login_element = driver.find_element_by_id("loginForm-email-input")
@@ -85,7 +85,7 @@ class Selenium_Chrome_Class:
 
     def go_to_patients_page(self):
         print("go_to_patients_page")
-        print('sleep 5')
+        print("sleep 5")
         time.sleep(5)
         patients_button_element = driver.find_element_by_id(
             "main-header-dashboard-icon"
@@ -178,24 +178,25 @@ class Selenium_Chrome_Class:
                 with open(file_path_to_scrape, "rb") as f:
                     text_from_pdf = pdftotext.PDF(f)
 
-            if (metric == 'avg'):
-                pages = helper_functions.find_correct_pages(
-                    "Weekly Summary", text_from_pdf)
+            if metric == "avg":
+                pages = helper_functions.Helper_Functions().find_correct_pages(
+                    "Weekly Summary", text_from_pdf
+                )
                 print(pages)
 
-                helper_functions.create_truncated_data_files_helper_function(
+                helper_functions.Helper_Functions().create_truncated_data_files_helper_function(
                     pages=pages,
                     writable_pdf=writable_pdf,
                     where_to_save_pdf="truncated_data",
                     person=files,
                 )
 
-            elif (metric == 'max'):
-                pages = helper_functions.find_correct_pages(
-                    'Daily Log', text_from_pdf)
+            elif metric == "max":
+                pages = helper_functions.Helper_Functions().find_correct_pages(
+                    "Daily Log", text_from_pdf)
                 print(pages)
 
-                helper_functions.create_truncated_data_files_helper_function(
+                helper_functions.Helper_Functions().create_truncated_data_files_helper_function(
                     metric=metric,
                     pages=pages,
                     writable_pdf=writable_pdf,
@@ -204,14 +205,13 @@ class Selenium_Chrome_Class:
                 )
 
     def write_truncated_data_files_to_extracted_data(self, metric):
-        helper_functions.write_to_extracted_data(
-            metric=metric)
+        helper_functions.Helper_Functions().write_to_extracted_data(metric=metric)
 
     def filter_txt_data(self, metric):
-        helper_functions.filter_extracted_data(metric=metric)
+        helper_functions.Helper_Functions().filter_extracted_data(metric=metric)
 
-    def upload_data(self):
-        helper_functions.txt_to_csv()
+    def upload_data(self, metric):
+        helper_functions.Helper_Functions().txt_to_csv(metric)
         google_sheets_module = google_sheet.Google_Sheets(
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
             spreadsheet_id=os.environ["SPREADSHEET_ID"],
@@ -244,7 +244,7 @@ class Selenium_Chrome_Class:
         # self.move_files()
         # self.create_truncated_data_files(metric="max")
         # self.write_truncated_data_files_to_extracted_data(metric="max")
-        self.filter_txt_data(metric='max')
+        self.filter_txt_data(metric="max")
         # self.upload_data()
         # self.clean_up()
 

@@ -11,174 +11,231 @@ import pandas as pd
 import re
 
 
-def find_correct_pages(header_of_correct_pages, pdf):
-    print('find_corect_pages')
-    pages = []
+class Helper_Functions():
+    def __init__(self, max_cache=None, file_cache=None, first_and_last_name=None):
 
-    if (header_of_correct_pages == 'Daily Log'):
+        if max_cache is None:
+            self.max_cache = []
+        else:
+            self.max_cache = max_cache
+
+        if file_cache is None:
+            self.file_cache = ""
+        else:
+            self.file_cache = max_cache
+
+        if first_and_last_name is None:
+            self.first_and_last_name = []
+        else:
+            self.first_and_last_name = first_and_last_name
+
+    def find_correct_pages(self, header_of_correct_pages, pdf):
+        print('find_corect_pages')
+        pages = []
+
+        if (header_of_correct_pages == 'Daily Log'):
+            for index, page in enumerate(pdf):
+                if 'Weekly Summary' in page:
+                    pages.append(index)
+                    break
+
         for index, page in enumerate(pdf):
-            if 'Weekly Summary' in page:
+            if header_of_correct_pages in page:
                 pages.append(index)
-                break
+        return pages
 
-    for index, page in enumerate(pdf):
-        if header_of_correct_pages in page:
-            pages.append(index)
-    return pages
+    def create_truncated_data_files_helper_function(self, metric, pages, writable_pdf, where_to_save_pdf, person):
+        print('write_data_to_txt_file')
+        pdfWriter = PdfFileWriter()
+        person = person.replace(".pdf", "")
 
+        for page_num in pages:
+            pdfWriter.addPage(writable_pdf.getPage(page_num))
 
-def create_truncated_data_files_helper_function(metric, pages, writable_pdf, where_to_save_pdf, person):
-    print('write_data_to_txt_file')
-    pdfWriter = PdfFileWriter()
-    person = person.replace(".pdf", "")
+        with open(f"{where_to_save_pdf}/{person}_truncated_data_{metric}.pdf", 'wb') as f:
+            pdfWriter.write(f)
+            f.close()
 
-    for page_num in pages:
-        pdfWriter.addPage(writable_pdf.getPage(page_num))
+    def write_to_extracted_data(self, metric):
+        for index, files in enumerate(sorted(os.listdir('./truncated_data'))):
+            file_path_to_scrape = os.path.join('./truncated_data', files)
+            length_of_pdf = PdfFileReader(
+                open(file_path_to_scrape, 'rb')).getNumPages()
 
-    with open(f"{where_to_save_pdf}/{person}_truncated_data_{metric}.pdf", 'wb') as f:
-        pdfWriter.write(f)
-        f.close()
+            with pdfplumber.open(file_path_to_scrape) as pdf:
 
+                for x in range(length_of_pdf):
+                    page = pdf.pages[x]
+                    text = page.extract_text(x_tolerance=3, y_tolerance=3)
 
-def write_to_extracted_data(metric):
-    # TODO ADD SOMETHING HERE SO THAT WE CAN DIFFERENTIALTE BETWEEN MAX AND AVE
-    # TODO FIND A BETTER WAY TO GET THE CORRECT NAMES (add the name from avg)
-    for index, files in enumerate(sorted(os.listdir('./truncated_data'))):
-        file_path_to_scrape = os.path.join('./truncated_data', files)
-        length_of_pdf = PdfFileReader(
-            open(file_path_to_scrape, 'rb')).getNumPages()
+                    if (x == 0 and metric == 'avg'):
+                        first_and_last_name = text.split(' ')[0:2]
+                        with open(f"extracted_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_data_avg.txt", "a") as f:
+                            f.write(text)
 
-        with pdfplumber.open(file_path_to_scrape) as pdf:
+                    elif (x != 0 and metric == 'avg'):
+                        with open(f"extracted_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_data_avg.txt", "a") as f:
+                            f.write(text)
 
-            for x in range(length_of_pdf):
-                page = pdf.pages[x]
-                text = page.extract_text(x_tolerance=3, y_tolerance=3)
+                    if (x == 0 and metric == 'max'):
+                        first_and_last_name = text.split(' ')[0:2]
 
-                if (x == 0 and metric == 'avg'):
-                    first_and_last_name = text.split(' ')[0:2]
-                    with open(f"extracted_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_data_avg.txt", "a") as f:
-                        f.write(text)
+                    elif (metric == 'max'):
+                        with open(f"extracted_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_data_max.txt", "a") as f:
+                            f.write(text)
 
-                elif (x != 0 and metric == 'avg'):
-                    with open(f"extracted_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_data_avg.txt", "a") as f:
-                        f.write(text)
+    def filter_extracted_data(self, metric):
+        print('filter_txt_data')
+        for index, extracted_data_files in enumerate(sorted(os.listdir('./extracted_data'))):
+            file_path = os.path.join('./extracted_data', extracted_data_files)
 
-                if (x == 0 and metric == 'max'):
-                    first_and_last_name = text.split(' ')[0:2]
+            if (extracted_data_files != self.file_cache and index != 0):
+                self.add_last_glucose_reading(
+                    file_path=f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt')
+            else:
+                self.file_cache = extracted_data_files
 
-                elif (metric == 'max'):
-                    with open(f"extracted_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_data_max.txt", "a") as f:
-                        f.write(text)
+            self.first_and_last_name = extracted_data_files.split('_')[0:2]
 
+            with open(file_path, 'r') as extracted_data_files_to_edit:
+                lines = extracted_data_files_to_edit.readlines()
 
-def filter_extracted_data(metric):
-    print('filter_txt_data')
-    for extracted_data_files in sorted(os.listdir('./extracted_data')):
-        first_and_last_name = extracted_data_files.split('_')[0:2]
-        file_path = os.path.join('./extracted_data', extracted_data_files)
+                for index, line in enumerate(lines):
+                    line = re.sub(r"[^A-Za-z0-9 ]+", '', line)
 
-        with open(file_path, 'r') as extracted_data_files_to_edit:
-            lines = extracted_data_files_to_edit.readlines()
+                    if (metric == 'avg'):
+                        if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
+                            with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
+                                line = line.replace('180', '')
+                                line = line.replace("  ", ' ')
+                                line = f"{self.first_and_last_name[0]} {self.first_and_last_name[1]} " + line
+                                line = line.strip("\n")
+                                line = line.split(" ")
 
-            for index, line in enumerate(lines):
-                print(line)
-                line = re.sub(r"[^A-Za-z0-9 ]+", '', line)
+                                while (len(line) < 5):
+                                    line.append(" ")
 
-                if (metric == 'avg'):
-                    if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
-                        with open(f'extracted_and_filtered_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
-                            line = line.replace('180', '')
-                            line = line.replace("  ", ' ')
-                            line = f"{first_and_last_name[0]} {first_and_last_name[1]} " + line
-                            line = line.strip("\n")
+                                if (line[4] == " "):
+                                    line[4] = float("NaN")
+
+                                final_text = f"{line[0]} {line[1]} {line[2]} {line[3]} {line[4]}\n"
+                                filtered_text_data.write(final_text)
+
+                    elif (metric == 'max'):
+                        selected_month = ''
+
+                        if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
+
+                            if (self.max_cache != []):
+
+                                with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
+                                    filtered_text_data.write(
+                                        str(max(self.max_cache)) + os.linesep)
+
+                                    self.max_cache = []
+
+                            for month in ('Jan ', 'Feb ', 'Mar ', 'Apr ',
+                                          'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec '):
+                                if (month in line):
+                                    selected_month = month
+                                    break
+
+                            with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
+                                line = line.replace("350", '')
+                                index_of_month = line.index(selected_month)
+                                line = line[index_of_month:]
+
+                                if ('am' in line):
+                                    index_of_times = line.index('am') - 3
+                                    line = line[0:index_of_times]
+                                    line = line + os.linesep
+
+                                filtered_text_data.write(
+                                    line.strip() + os.linesep)
+
+                        else:
+                            if ("Low Glucose" in line):
+                                continue
+                            line = re.sub(r"[^0-9 ]", '', line)
+                            line = re.sub(r"\s{2,}", " ", line)
+                            line = line.strip()
                             line = line.split(" ")
 
-                            while (len(line) < 5):
-                                line.append(" ")
+                            if (line[0] == ""):
+                                continue
 
-                            if (line[4] == " "):
-                                line[4] = float("NaN")
+                            if not line:
+                                continue
+                            else:
+                                nums = [int(x) for x in line]
 
-                            final_text = f"{line[0]} {line[1]} {line[2]} {line[3]} {line[4]}\n"
-                            filtered_text_data.write(final_text)
+                            nums = [x for x in nums if (50 < x < 300)]
 
-                elif (metric == 'max'):
-                    selected_month = ''
+                            if not nums:
+                                continue
+                            else:
+                                max_num = max(nums)
 
-                    if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
-                        for month in ('Jan ', 'Feb ', 'Mar ', 'Apr ',
-                                      'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec '):
-                            if (month in line):
-                                selected_month = month
-                                break
+                            if (((len(nums) == 1) and ((nums[0] == 180) or (nums[0] == 70) or (nums[0] == " ")))):
+                                continue
 
-                        with open(f'extracted_and_filtered_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
-                            line = line.replace("350", '')
-                            index_of_month = line.index(selected_month)
-                            line = line[index_of_month:]
+                            self.max_cache.append(max_num)
 
-                            if ('am' in line):
-                                index_of_times = line.index('am') - 3
-                                line = line[0:index_of_times]
-                                line = line + os.linesep
+    def add_last_glucose_reading(self, file_path):
+        print('add_last_glucose_reading')
 
-                            filtered_text_data.write(line.strip() + os.linesep)
+        with open(file_path, "a") as filtered_text_data:
+            filtered_text_data.write(
+                str(max(self.max_cache)) + os.linesep)
 
-                    else:
-                        if ("Low Glucose" in line):
-                            continue
-                        # ONLY NUMBERS
-                        line = re.sub(r"[^0-9 ]", '', line)
-                        # REMOVE WHITESPACE
-                        line = re.sub(r"\s{2,}", " ", line)
+        self.max_cache = []
 
-                        line = line.strip()
-                        # SPLIT
-                        line = line.split(" ")
+    def txt_to_csv(self, metric):
+        print('txt_to_csv')
+        if (metric == 'avg'):
+            for extracted_and_filtered_data_file in sorted(os.listdir('./extracted_and_filtered_data')):
+                print(extracted_and_filtered_data_file)
+                first_and_last_name = extracted_and_filtered_data_file.split('_')[
+                    0:2]
+                print('first and last name')
+                print(first_and_last_name)
 
-                        if (line[0] == ""):
-                            continue
+                file_path = os.path.join(
+                    './extracted_and_filtered_data', extracted_and_filtered_data_file)
+                print('filepath')
+                print(file_path)
+                dataframe = pd.read_csv(
+                    file_path, delimiter=' ')
 
-                        if not line:
-                            continue
-                        else:
-                            nums = [int(x) for x in line]
+                print('dataframe')
+                print(dataframe)
+                dataframe.columns = ['First Name', 'Last Name',
+                                     'Month', 'Day', 'Avg Glucose Level']
 
-                        # remove nums greater than 300 and less than 50
-                        nums = [x for x in nums if (50 < x < 300)]
+                print('datafrom.to_csv')
+                dataframe.to_csv(
+                    f'./final_csv_data/{first_and_last_name[0]}_{first_and_last_name[1]}_final_formatted_csv_data.csv')
 
-                        if not nums:
-                            continue
-                        else:
-                            max_num = max(nums)
+        elif (metric == 'max'):
+            for extracted_and_filtered_data_file in sorted(os.listdir('./extracted_and_filtered_data')):
+                print(extracted_and_filtered_data_file)
+                first_and_last_name = extracted_and_filtered_data_file.split('_')[
+                    0:2]
+                print('first and last name')
+                print(first_and_last_name)
 
-                        if (((len(nums) == 1) and ((nums[0] == 180) or (nums[0] == 70) or (nums[0] == " ")))):
-                            continue
+                file_path = os.path.join(
+                    './extracted_and_filtered_data', extracted_and_filtered_data_file)
+                print('filepath')
+                print(file_path)
+                dataframe = pd.read_csv(
+                    file_path, delimiter=' ')
 
-                        with open(f'extracted_and_filtered_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
-                            filtered_text_data.write(str(max_num) + os.linesep)
+                print('dataframe')
+                print(dataframe)
+                dataframe.columns = ['First Name', 'Last Name',
+                                     'Month', 'Day', 'Avg Glucose Level']
 
-
-def txt_to_csv():
-    print('txt_to_csv')
-    for extracted_and_filtered_data_file in sorted(os.listdir('./extracted_and_filtered_data')):
-        print(extracted_and_filtered_data_file)
-        first_and_last_name = extracted_and_filtered_data_file.split('_')[0:2]
-        print('first and last name')
-        print(first_and_last_name)
-
-        file_path = os.path.join(
-            './extracted_and_filtered_data', extracted_and_filtered_data_file)
-        print('filepath')
-        print(file_path)
-        dataframe = pd.read_csv(
-            file_path, delimiter=' ')
-
-        print('dataframe')
-        print(dataframe)
-        dataframe.columns = ['First Name', 'Last Name',
-                             'Month', 'Day', 'Avg Glucose Level']
-
-        print('datafrom.to_csv')
-        dataframe.to_csv(
-            f'./final_csv_data/{first_and_last_name[0]}_{first_and_last_name[1]}_final_formatted_csv_data.csv')
+                print('datafrom.to_csv')
+                dataframe.to_csv(
+                    f'./final_csv_data/{first_and_last_name[0]}_{first_and_last_name[1]}_final_formatted_csv_data.csv')
