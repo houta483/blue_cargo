@@ -89,13 +89,8 @@ class Helper_Functions():
         for index, extracted_data_files in enumerate(sorted(os.listdir('./extracted_data'))):
             file_path = os.path.join('./extracted_data', extracted_data_files)
 
-            if (extracted_data_files != self.file_cache and index != 0):
-                self.add_last_glucose_reading(
-                    file_path=f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt')
-            else:
-                self.file_cache = extracted_data_files
-
-            self.first_and_last_name = extracted_data_files.split('_')[0:2]
+            self.check_to_see_if_the_file_has_changed(
+                extracted_data_files, index, metric)
 
             with open(file_path, 'r') as extracted_data_files_to_edit:
                 lines = extracted_data_files_to_edit.readlines()
@@ -104,82 +99,109 @@ class Helper_Functions():
                     line = re.sub(r"[^A-Za-z0-9 ]+", '', line)
 
                     if (metric == 'avg'):
-                        if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
-                            with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
-                                line = line.replace('180', '')
-                                line = line.replace("  ", ' ')
-                                line = f"{self.first_and_last_name[0]} {self.first_and_last_name[1]} " + line
-                                line = line.strip("\n")
-                                line = line.split(" ")
-
-                                while (len(line) < 5):
-                                    line.append(" ")
-
-                                if (line[4] == " "):
-                                    line[4] = float("NaN")
-
-                                final_text = f"{line[0]} {line[1]} {line[2]} {line[3]} {line[4]}\n"
-                                filtered_text_data.write(final_text)
+                        self.filter_extracted_data_avg(line)
 
                     elif (metric == 'max'):
-                        selected_month = ''
+                        self.filter_extracted_data_max(line)
 
-                        if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
+    def check_to_see_if_the_file_has_changed(self, extracted_data_files, index, metric):
+        if (extracted_data_files != self.file_cache and index != 0 and metric == 'max'):
+            self.add_last_glucose_reading(
+                file_path=f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt')
+        else:
+            self.file_cache = extracted_data_files
 
-                            if (self.max_cache != []):
+        self.first_and_last_name = extracted_data_files.split('_')[0:2]
 
-                                with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
-                                    filtered_text_data.write(
-                                        str(max(self.max_cache)) + os.linesep)
+    def filter_extracted_data_avg(self, line):
+        if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
+            with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
+                line = line.replace('180', '')
+                line = line.replace("  ", ' ')
+                line = f"{self.first_and_last_name[0]} {self.first_and_last_name[1]} " + line
+                line = line.strip("\n")
+                line = line.split(" ")
 
-                                    self.max_cache = []
+                while (len(line) < 5):
+                    line.append(" ")
 
-                            for month in ('Jan ', 'Feb ', 'Mar ', 'Apr ',
-                                          'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec '):
-                                if (month in line):
-                                    selected_month = month
-                                    break
+                if (line[4] == " "):
+                    line[4] = float("NaN")
 
-                            with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
-                                line = line.replace("350", '')
-                                index_of_month = line.index(selected_month)
-                                line = line[index_of_month:]
+                final_text = f"{line[0]} {line[1]} {line[2]} {line[3]} {line[4]}\n"
+                filtered_text_data.write(final_text)
 
-                                if ('am' in line):
-                                    index_of_times = line.index('am') - 3
-                                    line = line[0:index_of_times]
-                                    line = line + os.linesep
+    def filter_extracted_data_max(self, line):
+        print('filter_Extracted_data_max')
+        selected_month = ''
 
-                                filtered_text_data.write(
-                                    line.strip() + os.linesep)
+        if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
 
-                        else:
-                            if ("Low Glucose" in line):
-                                continue
-                            line = re.sub(r"[^0-9 ]", '', line)
-                            line = re.sub(r"\s{2,}", " ", line)
-                            line = line.strip()
-                            line = line.split(" ")
+            if (self.max_cache != []):
+                if (all(x == 0 for x in self.max_cache)):
+                    if (os.path.exists(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt')):
+                        with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
+                            filtered_text_data.write(os.linesep)
 
-                            if (line[0] == ""):
-                                continue
+                else:
+                    with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
+                        filtered_text_data.write(
+                            str(max(self.max_cache)) + os.linesep)
 
-                            if not line:
-                                continue
-                            else:
-                                nums = [int(x) for x in line]
+                self.max_cache = []
 
-                            nums = [x for x in nums if (50 < x < 300)]
+            for month in ('Jan ', 'Feb ', 'Mar ', 'Apr ',
+                          'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec '):
+                if (month in line):
+                    selected_month = month
+                    break
 
-                            if not nums:
-                                continue
-                            else:
-                                max_num = max(nums)
+            with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
+                line = line.replace("350", '')
+                index_of_month = line.index(selected_month)
+                line = line[index_of_month:]
 
-                            if (((len(nums) == 1) and ((nums[0] == 180) or (nums[0] == 70) or (nums[0] == " ")))):
-                                continue
+                if ('am' in line):
+                    index_of_times = line.index('am') - 3
+                    line = line[0:index_of_times]
+                    line = f"{self.first_and_last_name[0]} {self.first_and_last_name[1]} " + line
+                    line = line + " "
+                    line = line.replace("  ", " ")
 
-                            self.max_cache.append(max_num)
+                else:
+                    line = f"{self.first_and_last_name[0]} {self.first_and_last_name[1]} " + line.strip(
+                    ) + " "
+
+                filtered_text_data.write(line)
+
+        else:
+            if ("Low Glucose" in line):
+                return self.max_cache.append(0)
+
+            line = re.sub(r"[^0-9 ]", '', line)
+            line = re.sub(r"\s{2,}", " ", line)
+            line = line.strip()
+            line = line.split(" ")
+
+            if (line[0] == ""):
+                return self.max_cache.append(0)
+
+            if not line:
+                return self.max_cache.append(0)
+            else:
+                nums = [int(x) for x in line]
+
+            nums = [x for x in nums if (50 < x < 300)]
+
+            if not nums:
+                return self.max_cache.append(0)
+            else:
+                max_num = max(nums)
+
+            if (((len(nums) == 1) and ((nums[0] == 180) or (nums[0] == 70) or (nums[0] == " ")))):
+                return self.max_cache.append(0)
+
+            self.max_cache.append(max_num)
 
     def add_last_glucose_reading(self, file_path):
         print('add_last_glucose_reading')

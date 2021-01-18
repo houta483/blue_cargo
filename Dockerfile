@@ -49,4 +49,4 @@ RUN apt-get install build-essential libpoppler-cpp-dev pkg-config python-dev -y
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Set env variables
-CMD [ "python", "my_selenium.py" ]
+CMD [ "python", "app.py" ]

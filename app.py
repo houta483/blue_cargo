@@ -189,6 +189,7 @@ class Selenium_Chrome_Class:
                     writable_pdf=writable_pdf,
                     where_to_save_pdf="truncated_data",
                     person=files,
+                    metric=metric
                 )
 
             elif metric == "max":
@@ -212,11 +213,13 @@ class Selenium_Chrome_Class:
 
     def upload_data(self, metric):
         helper_functions.Helper_Functions().txt_to_csv(metric)
+
         google_sheets_module = google_sheet.Google_Sheets(
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
             spreadsheet_id=os.environ["SPREADSHEET_ID"],
             sheet_range="Sheet1!A8:I1",
         )
+
         google_sheets_module.main()
 
     def clean_up(self):
@@ -235,17 +238,17 @@ class Selenium_Chrome_Class:
             for files in directory:
                 os.remove(files)
 
-    def run(self):
+    def run(self, metric):
         # self.start_driver()
         # self.country_of_residence()
         # self.populate_login_elements()
         # self.go_to_patients_page()
         # self.patients_table()
         # self.move_files()
-        # self.create_truncated_data_files(metric="max")
-        # self.write_truncated_data_files_to_extracted_data(metric="max")
-        self.filter_txt_data(metric="max")
-        # self.upload_data()
+        # self.create_truncated_data_files(metric=metric)
+        # self.write_truncated_data_files_to_extracted_data(metric=metric)
+        self.filter_txt_data(metric=metric)
+        # self.upload_data(metric=metric)
         # self.clean_up()
 
 
@@ -255,4 +258,4 @@ app = Selenium_Chrome_Class(
     current_url="https://www.libreview.com/",
 )
 
-app.run()
+app.run('max')
