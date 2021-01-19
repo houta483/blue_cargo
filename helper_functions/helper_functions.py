@@ -86,34 +86,49 @@ class Helper_Functions():
 
     def filter_extracted_data(self, metric):
         print('filter_txt_data')
+
+        # LOOKS THROUGH EACH FILE
         for index, extracted_data_files in enumerate(sorted(os.listdir('./extracted_data'))):
             file_path = os.path.join('./extracted_data', extracted_data_files)
 
-            self.check_to_see_if_the_file_has_changed(
+            self.add_glucose_reading_or_set_file_cache(
                 extracted_data_files, index, metric)
+
+            self.first_and_last_name = extracted_data_files.split('_')[0:2]
 
             with open(file_path, 'r') as extracted_data_files_to_edit:
                 lines = extracted_data_files_to_edit.readlines()
 
+                # LOOPS THROUGH EACH LINE IN THE FILE
                 for index, line in enumerate(lines):
+                    # DEGUB TODO - REMOVE
+                    if ("199" in line and ("Steven" in self.first_and_last_name)):
+                        print(line)
+
                     line = re.sub(r"[^A-Za-z0-9 ]+", '', line)
 
                     if (metric == 'avg'):
-                        self.filter_extracted_data_avg(line)
+                        self.filter_and_write_extracted_data_avg(line)
 
                     elif (metric == 'max'):
-                        self.filter_extracted_data_max(line)
+                        # SEE IF WE SHOULD APPEND DATE OR APPEND GLUCOSE READING
+                        self.filter_and_write_extracted_data_max(line)
 
-    def check_to_see_if_the_file_has_changed(self, extracted_data_files, index, metric):
+    def add_glucose_reading_or_set_file_cache(self, extracted_data_files, index, metric):
         if (extracted_data_files != self.file_cache and index != 0 and metric == 'max'):
-            self.add_last_glucose_reading(
-                file_path=f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt')
+            print('add_final_glucose_reading')
+            file_path = f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt'
+
+            with open(file_path, "a") as filtered_text_data:
+                filtered_text_data.write(
+                    str(max(self.max_cache)) + os.linesep)
+
+            self.max_cache = []
+            self.file_cache = extracted_data_files
         else:
             self.file_cache = extracted_data_files
 
-        self.first_and_last_name = extracted_data_files.split('_')[0:2]
-
-    def filter_extracted_data_avg(self, line):
+    def filter_and_write_extracted_data_avg(self, line):
         if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
             with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
                 line = line.replace('180', '')
@@ -131,10 +146,11 @@ class Helper_Functions():
                 final_text = f"{line[0]} {line[1]} {line[2]} {line[3]} {line[4]}\n"
                 filtered_text_data.write(final_text)
 
-    def filter_extracted_data_max(self, line):
+    def filter_and_write_extracted_data_max(self, line):
         print('filter_Extracted_data_max')
         selected_month = ''
 
+        # GETS THE MONTH LINES
         if any(x in line for x in ('Jan ', 'Feb ', 'Mar ', 'Apr ', 'May ', 'Jun ', 'Jul ', 'Aug ', 'Sep ', 'Oct ', 'Nov ', 'Dec ')):
 
             if (self.max_cache != []):
@@ -174,6 +190,7 @@ class Helper_Functions():
 
                 filtered_text_data.write(line)
 
+        # If it is not a month line, the scan for glucose readings
         else:
             if ("Low Glucose" in line):
                 return self.max_cache.append(0)
@@ -189,7 +206,7 @@ class Helper_Functions():
             if not line:
                 return self.max_cache.append(0)
             else:
-                nums = [int(x) for x in line]
+                nums = [int(x) for x in line if x[0] != "0"]
 
             nums = [x for x in nums if (50 < x < 300)]
 
@@ -202,15 +219,6 @@ class Helper_Functions():
                 return self.max_cache.append(0)
 
             self.max_cache.append(max_num)
-
-    def add_last_glucose_reading(self, file_path):
-        print('add_last_glucose_reading')
-
-        with open(file_path, "a") as filtered_text_data:
-            filtered_text_data.write(
-                str(max(self.max_cache)) + os.linesep)
-
-        self.max_cache = []
 
     def txt_to_csv(self, metric):
         print('txt_to_csv')
@@ -239,6 +247,13 @@ class Helper_Functions():
                     f'./final_csv_data/{first_and_last_name[0]}_{first_and_last_name[1]}_final_formatted_csv_data.csv')
 
         elif (metric == 'max'):
+            with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
+                filtered_text_data.write(
+                    str(max(self.max_cache)) + os.linesep)
+
+            print('FOR DEBUGGING')
+            return
+
             for extracted_and_filtered_data_file in sorted(os.listdir('./extracted_and_filtered_data')):
                 print(extracted_and_filtered_data_file)
                 first_and_last_name = extracted_and_filtered_data_file.split('_')[

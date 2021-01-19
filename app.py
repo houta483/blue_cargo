@@ -34,7 +34,8 @@ if DOCKER_KEY:
     driver = webdriver.Chrome(options=chrome_options)
     print("I am running in a Docker container")
 elif DOCKER_KEY == False:
-    driver = webdriver.Chrome("utils/chromedriver")
+    # TODO - UNCOMMENT DRIVER
+    # driver = webdriver.Chrome("utils/chromedriver")
     os.environ["GLUCOSE_PASSWORD"] = "French44!"
     os.environ["USERNAME"] = "stevenhoughtonjr1@gmail.com"
     os.environ["SPREADSHEET_ID"] = "1wwGhXxKS9dXEx6YM5p9qTRLtng1Rr6ASd-y07MCZaVs"
@@ -46,6 +47,7 @@ class Selenium_Chrome_Class:
         self.username = username
         self.password = password
         self.current_url = current_url
+        self.helper_function_instance = helper_functions.Helper_Functions()
 
     def start_driver(self):
         print("start_driver")
@@ -179,12 +181,12 @@ class Selenium_Chrome_Class:
                     text_from_pdf = pdftotext.PDF(f)
 
             if metric == "avg":
-                pages = helper_functions.Helper_Functions().find_correct_pages(
+                pages = self.helper_function_instance.find_correct_pages(
                     "Weekly Summary", text_from_pdf
                 )
                 print(pages)
 
-                helper_functions.Helper_Functions().create_truncated_data_files_helper_function(
+                self.helper_function_instance.create_truncated_data_files_helper_function(
                     pages=pages,
                     writable_pdf=writable_pdf,
                     where_to_save_pdf="truncated_data",
@@ -193,11 +195,11 @@ class Selenium_Chrome_Class:
                 )
 
             elif metric == "max":
-                pages = helper_functions.Helper_Functions().find_correct_pages(
+                pages = self.helper_function_instance.find_correct_pages(
                     "Daily Log", text_from_pdf)
                 print(pages)
 
-                helper_functions.Helper_Functions().create_truncated_data_files_helper_function(
+                self.helper_function_instance.create_truncated_data_files_helper_function(
                     metric=metric,
                     pages=pages,
                     writable_pdf=writable_pdf,
@@ -206,13 +208,13 @@ class Selenium_Chrome_Class:
                 )
 
     def write_truncated_data_files_to_extracted_data(self, metric):
-        helper_functions.Helper_Functions().write_to_extracted_data(metric=metric)
+        self.helper_function_instance.write_to_extracted_data(metric=metric)
 
     def filter_txt_data(self, metric):
-        helper_functions.Helper_Functions().filter_extracted_data(metric=metric)
+        self.helper_function_instance.filter_extracted_data(metric=metric)
 
     def upload_data(self, metric):
-        helper_functions.Helper_Functions().txt_to_csv(metric)
+        self.helper_function_instance.txt_to_csv(metric)
 
         google_sheets_module = google_sheet.Google_Sheets(
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
@@ -248,7 +250,7 @@ class Selenium_Chrome_Class:
         # self.create_truncated_data_files(metric=metric)
         # self.write_truncated_data_files_to_extracted_data(metric=metric)
         self.filter_txt_data(metric=metric)
-        # self.upload_data(metric=metric)
+        self.upload_data(metric=metric)
         # self.clean_up()
 
 
