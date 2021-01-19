@@ -34,7 +34,6 @@ if DOCKER_KEY:
     driver = webdriver.Chrome(options=chrome_options)
     print("I am running in a Docker container")
 elif DOCKER_KEY == False:
-    # TODO - UNCOMMENT DRIVER
     # driver = webdriver.Chrome("utils/chromedriver")
     os.environ["GLUCOSE_PASSWORD"] = "French44!"
     os.environ["USERNAME"] = "stevenhoughtonjr1@gmail.com"
@@ -153,7 +152,8 @@ class Selenium_Chrome_Class:
                 parameter = False
 
     def move_files(self):
-        driver.quit()
+        # TODO DEBUG
+        # driver.quit()
         print("move_files")
         current_day = datetime.date.today()
         formatted_date = datetime.date.strftime(current_day, "%m-%d-%Y")
@@ -208,7 +208,12 @@ class Selenium_Chrome_Class:
                 )
 
     def write_truncated_data_files_to_extracted_data(self, metric):
-        self.helper_function_instance.write_to_extracted_data(metric=metric)
+        if (metric == "max"):
+            self.helper_function_instance.write_to_extracted_data_max(
+                metric=metric)
+        elif (metric == "avg"):
+            self.helper_function_instance.write_to_extracted_data_avg(
+                metric=metric)
 
     def filter_txt_data(self, metric):
         self.helper_function_instance.filter_extracted_data(metric=metric)
@@ -247,8 +252,8 @@ class Selenium_Chrome_Class:
         # self.go_to_patients_page()
         # self.patients_table()
         # self.move_files()
-        # self.create_truncated_data_files(metric=metric)
-        # self.write_truncated_data_files_to_extracted_data(metric=metric)
+        self.create_truncated_data_files(metric=metric)
+        self.write_truncated_data_files_to_extracted_data(metric=metric)
         self.filter_txt_data(metric=metric)
         self.upload_data(metric=metric)
         # self.clean_up()
