@@ -1,9 +1,3 @@
-from pdfminer.converter import TextConverter
-from pdfminer.pdfparser import PDFParser
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.pdfdocument import PDFDocument
-from pdfminer.layout import LAParams
 import os
 from PIL import Image
 from string import ascii_lowercase
@@ -62,45 +56,7 @@ class Helper_Functions():
             pdfWriter.write(f)
             f.close()
 
-    def write_to_extracted_data_max(self, metric):
-        from io import StringIO
-
-        for index, files in enumerate(sorted(os.listdir('./truncated_data'))):
-            file_path_to_scrape = os.path.join('./truncated_data', files)
-            output_string = StringIO()
-
-            with open(file_path_to_scrape, 'rb') as in_file:
-                parser = PDFParser(in_file)
-                doc = PDFDocument(parser)
-                rsrcmgr = PDFResourceManager()
-                device = TextConverter(
-                    rsrcmgr, output_string, laparams=LAParams())
-                interpreter = PDFPageInterpreter(rsrcmgr, device)
-
-                for page in PDFPage.create_pages(doc):
-                    interpreter.process_page(page)
-
-            text = output_string.getvalue()
-
-            if (metric == 'avg'):
-                first_and_last_name = text.split(' ')[0:2]
-                with open(f"extracted_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_data_avg.txt", "a") as f:
-                    f.write(output_string.getvalue())
-
-            elif (metric == 'max'):
-                first_and_last_name = text.split(' ')[0:2]
-                first_and_last_name = [str(name)
-                                       for name in first_and_last_name]
-                first_and_last_name = [
-                    re.sub(r"[^A-Za-z0-9 ]+", '', name) for name in first_and_last_name]
-                first_and_last_name[1] = first_and_last_name[1].replace(
-                    "DOB", "")
-
-                file_name = f"extracted_data/{first_and_last_name[0]}_{first_and_last_name[1]}_extracted_data_max.txt"
-                with open(file_name, "a") as f:
-                    f.write(output_string.getvalue())
-
-    def write_to_extracted_data_avg(self, metric):
+    def write_to_extracted_data(self, metric):
         for index, files in enumerate(sorted(os.listdir('./truncated_data'))):
             file_path_to_scrape = os.path.join('./truncated_data', files)
             length_of_pdf = PdfFileReader(

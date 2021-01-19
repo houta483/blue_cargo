@@ -208,12 +208,8 @@ class Selenium_Chrome_Class:
                 )
 
     def write_truncated_data_files_to_extracted_data(self, metric):
-        if (metric == "max"):
-            self.helper_function_instance.write_to_extracted_data_max(
-                metric=metric)
-        elif (metric == "avg"):
-            self.helper_function_instance.write_to_extracted_data_avg(
-                metric=metric)
+        self.helper_function_instance.write_to_extracted_data(
+            metric=metric)
 
     def filter_txt_data(self, metric):
         self.helper_function_instance.filter_extracted_data(metric=metric)
@@ -251,7 +247,7 @@ class Selenium_Chrome_Class:
         # self.populate_login_elements()
         # self.go_to_patients_page()
         # self.patients_table()
-        # self.move_files()
+        self.move_files()
         self.create_truncated_data_files(metric=metric)
         self.write_truncated_data_files_to_extracted_data(metric=metric)
         self.filter_txt_data(metric=metric)
