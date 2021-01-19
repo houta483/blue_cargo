@@ -1,0 +1,12 @@
+Kimberly Dec 21 is not empty as it should be
+Kimberly Dec 23 has 180 when it shouldnt
+Kimberly Dec 24 has incorrect
+Kimberly Dec 29th is reading the DOB...
+
+Raleigh has incorrect jan 3, it should be empty but is not bc it is taking the DOB
+
+Steven Jan 2 is not empty as it should be, it is getting 110 from somewhere (y axis, it think)
+Steven Jan 4 is wrong becuase it is taking the DOB
+Steven Jan 5 is wrong becase it is taking the 110
+Steven Jan 12 is taking the 110
+
