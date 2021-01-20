@@ -213,14 +213,23 @@ class Selenium_Chrome_Class:
     def filter_txt_data(self, metric):
         self.helper_function_instance.filter_extracted_data(metric=metric)
 
-    def upload_data(self, metric):
+    def convert_data_to_csv(self, metric):
         self.helper_function_instance.txt_to_csv(metric)
 
-        google_sheets_module = google_sheet.Google_Sheets(
-            scopes=["https://www.googleapis.com/auth/spreadsheets"],
-            spreadsheet_id=os.environ["SPREADSHEET_ID"],
-            sheet_range="Sheet1!A8:I1",
-        )
+    def upload_data(self, metric):
+        if (metric == 'avg'):
+            google_sheets_module = google_sheet.Google_Sheets(
+                scopes=["https://www.googleapis.com/auth/spreadsheets"],
+                spreadsheet_id=os.environ["SPREADSHEET_ID"],
+                sheet_range="Average!A8:I1",
+            )
+
+        elif (metric == 'max'):
+            google_sheets_module = google_sheet.Google_Sheets(
+                scopes=["https://www.googleapis.com/auth/spreadsheets"],
+                spreadsheet_id=os.environ["SPREADSHEET_ID"],
+                sheet_range="Max!A8:I1",
+            )
 
         google_sheets_module.main()
 
@@ -241,17 +250,18 @@ class Selenium_Chrome_Class:
                 os.remove(files)
 
     def run(self, metric):
-        # self.start_driver()
-        # self.country_of_residence()
-        # self.populate_login_elements()
-        # self.go_to_patients_page()
-        # self.patients_table()
-        # self.move_files()
+        self.start_driver()
+        self.country_of_residence()
+        self.populate_login_elements()
+        self.go_to_patients_page()
+        self.patients_table()
+        self.move_files()
         self.create_truncated_data_files(metric=metric)
         self.write_truncated_data_files_to_extracted_data(metric=metric)
         self.filter_txt_data(metric=metric)
+        self.convert_data_to_csv(metric=metric)
         self.upload_data(metric=metric)
-        # self.clean_up()
+        self.clean_up()
 
 
 app = Selenium_Chrome_Class(
