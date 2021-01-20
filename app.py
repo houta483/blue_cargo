@@ -34,7 +34,7 @@ if DOCKER_KEY:
     driver = webdriver.Chrome(options=chrome_options)
     print("I am running in a Docker container")
 elif DOCKER_KEY == False:
-    # driver = webdriver.Chrome("utils/chromedriver")
+    driver = webdriver.Chrome("utils/chromedriver")
     os.environ["GLUCOSE_PASSWORD"] = "French44!"
     os.environ["USERNAME"] = "stevenhoughtonjr1@gmail.com"
     os.environ["SPREADSHEET_ID"] = "1wwGhXxKS9dXEx6YM5p9qTRLtng1Rr6ASd-y07MCZaVs"
@@ -152,8 +152,7 @@ class Selenium_Chrome_Class:
                 parameter = False
 
     def move_files(self):
-        # TODO DEBUG
-        # driver.quit()
+        driver.quit()
         print("move_files")
         current_day = datetime.date.today()
         formatted_date = datetime.date.strftime(current_day, "%m-%d-%Y")
@@ -247,7 +246,7 @@ class Selenium_Chrome_Class:
         # self.populate_login_elements()
         # self.go_to_patients_page()
         # self.patients_table()
-        self.move_files()
+        # self.move_files()
         self.create_truncated_data_files(metric=metric)
         self.write_truncated_data_files_to_extracted_data(metric=metric)
         self.filter_txt_data(metric=metric)

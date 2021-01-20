@@ -66,7 +66,8 @@ class Helper_Functions():
 
                 for x in range(length_of_pdf):
                     page = pdf.pages[x]
-                    text = page.extract_text(x_tolerance=3, y_tolerance=3)
+                    filtered = page.filter(lambda x: x.get("upright") == True)
+                    text = filtered.extract_text()
 
                     if (x == 0 and metric == 'avg'):
                         first_and_last_name = text.split(' ')[0:2]
@@ -101,10 +102,6 @@ class Helper_Functions():
 
                 # LOOPS THROUGH EACH LINE IN THE FILE
                 for index, line in enumerate(lines):
-                    # DEGUB TODO - REMOVE
-                    if ("199" in line and ("Steven" in self.first_and_last_name)):
-                        print(line)
-
                     line = re.sub(r"[^A-Za-z0-9 ]+", '', line)
 
                     if (metric == 'avg'):
@@ -190,35 +187,48 @@ class Helper_Functions():
 
                 filtered_text_data.write(line)
 
-        # If it is not a month line, the scan for glucose readings
         else:
-            if ("Low Glucose" in line):
-                return self.max_cache.append(0)
+            self.filter_for_each_line(line)
 
-            line = re.sub(r"[^0-9 ]", '', line)
-            line = re.sub(r"\s{2,}", " ", line)
-            line = line.strip()
-            line = line.split(" ")
+    def filter_for_each_line(self, line):
+        if (("Glucose" in line) or ('PostMeal' in line) or ('14 Days' in line) or ('pm' in line) or ('TestDaily') in line):
+            return self.max_cache.append(0)
 
-            if (line[0] == ""):
-                return self.max_cache.append(0)
+        if ((line == '110') or (line == "70") or (line == '0')):
+            return self.max_cache.append(0)
 
-            if not line:
-                return self.max_cache.append(0)
-            else:
-                nums = [int(x) for x in line if x[0] != "0"]
+        line = re.sub(r"[^0-9 ]", '', line)
+        line = re.sub(r"\s{2,}", " ", line)
+        line = line.strip()
+        line = line.split(" ")
 
-            nums = [x for x in nums if (50 < x < 300)]
+        if (line[0] == ""):
+            return self.max_cache.append(0)
 
-            if not nums:
-                return self.max_cache.append(0)
-            else:
-                max_num = max(nums)
+        if not line:
+            return self.max_cache.append(0)
+        else:
+            nums = [int(x) for x in line if x[0] != "0"]
 
-            if (((len(nums) == 1) and ((nums[0] == 180) or (nums[0] == 70) or (nums[0] == " ")))):
-                return self.max_cache.append(0)
+        nums = [x for x in nums if (50 < x < 300)]
 
-            self.max_cache.append(max_num)
+        if not nums:
+            return self.max_cache.append(0)
+        else:
+            max_num = max(nums)
+
+        if (nums[0] == 180):
+            nums = nums[1:]
+
+        if not nums:
+            return self.max_cache.append(0)
+        else:
+            max_num = max(nums)
+
+        if ((nums[0] == 70) or (nums[0] == " ")):
+            return self.max_cache.append(0)
+
+        self.max_cache.append(max_num)
 
     def txt_to_csv(self, metric):
         print('txt_to_csv')
@@ -226,7 +236,7 @@ class Helper_Functions():
             for extracted_and_filtered_data_file in sorted(os.listdir('./extracted_and_filtered_data')):
                 print(extracted_and_filtered_data_file)
                 first_and_last_name = extracted_and_filtered_data_file.split('_')[
-                    0:2]
+                    0: 2]
                 print('first and last name')
                 print(first_and_last_name)
 
@@ -244,20 +254,18 @@ class Helper_Functions():
 
                 print('datafrom.to_csv')
                 dataframe.to_csv(
-                    f'./final_csv_data/{first_and_last_name[0]}_{first_and_last_name[1]}_final_formatted_csv_data.csv')
+                    f'./final_csv_data/{first_and_last_name[0]}_{first_and_last_name[1]}_final_formatted_csv_data_avg.csv')
 
         elif (metric == 'max'):
+            # APPEND THE FINAL VALUE ON THE FINAL FILE
             with open(f'extracted_and_filtered_data/{self.first_and_last_name[0]}_{self.first_and_last_name[1]}_extracted_and_filtered_data.txt', "a") as filtered_text_data:
                 filtered_text_data.write(
                     str(max(self.max_cache)) + os.linesep)
 
-            print('FOR DEBUGGING')
-            return
-
             for extracted_and_filtered_data_file in sorted(os.listdir('./extracted_and_filtered_data')):
                 print(extracted_and_filtered_data_file)
                 first_and_last_name = extracted_and_filtered_data_file.split('_')[
-                    0:2]
+                    0: 2]
                 print('first and last name')
                 print(first_and_last_name)
 
@@ -271,8 +279,8 @@ class Helper_Functions():
                 print('dataframe')
                 print(dataframe)
                 dataframe.columns = ['First Name', 'Last Name',
-                                     'Month', 'Day', 'Avg Glucose Level']
+                                     'Month', 'Day', 'Max Glucose Level']
 
                 print('datafrom.to_csv')
                 dataframe.to_csv(
-                    f'./final_csv_data/{first_and_last_name[0]}_{first_and_last_name[1]}_final_formatted_csv_data.csv')
+                    f'./final_csv_data/{first_and_last_name[0]}_{first_and_last_name[1]}_final_formatted_csv_data_max.csv')
