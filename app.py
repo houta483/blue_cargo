@@ -221,14 +221,14 @@ class Selenium_Chrome_Class:
             google_sheets_module = google_sheet.Google_Sheets(
                 scopes=["https://www.googleapis.com/auth/spreadsheets"],
                 spreadsheet_id=os.environ["SPREADSHEET_ID"],
-                sheet_range="Average!A8:I1",
+                sheet_range="e1!A8:I1",
             )
 
         elif (metric == 'max'):
             google_sheets_module = google_sheet.Google_Sheets(
                 scopes=["https://www.googleapis.com/auth/spreadsheets"],
                 spreadsheet_id=os.environ["SPREADSHEET_ID"],
-                sheet_range="Max!A8:I1",
+                sheet_range="Max1!A8:I1",
             )
 
         google_sheets_module.main()

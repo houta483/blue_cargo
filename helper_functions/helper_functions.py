@@ -273,14 +273,11 @@ class Helper_Functions():
                     './extracted_and_filtered_data', extracted_and_filtered_data_file)
                 print('filepath')
                 print(file_path)
-                dataframe = pd.read_csv(
-                    file_path, delimiter=' ')
 
-                print('dataframe')
-                print(dataframe)
-                dataframe.columns = ['First Name', 'Last Name',
-                                     'Month', 'Day', 'Max Glucose Level']
+                dataframe = pd.read_csv(
+                    file_path, delimiter=' ', names=['First Name', 'Last Name',
+                                                     'Month', 'Day', 'Max Glucose Level'])
 
                 print('datafrom.to_csv')
                 dataframe.to_csv(
-                    f'./final_csv_data/{first_and_last_name[0]}_{first_and_last_name[1]}_final_formatted_csv_data_max.csv')
+                    f'./final_csv_data/{first_and_last_name[0]}_{first_and_last_name[1]}_final_formatted_csv_data_max.csv', index=False)
