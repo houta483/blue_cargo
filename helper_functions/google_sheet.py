@@ -129,8 +129,6 @@ class Google_Sheets():
             print("COMPLETE: Data copied")
             value_to_return = data_frame
 
-        # FILTER THE DATA FROM ONLINE
-
         return value_to_return
 
     def get_credentials(self):
