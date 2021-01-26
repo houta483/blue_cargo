@@ -254,7 +254,7 @@ class Helper_Functions():
 
                 print('datafrom.to_csv')
                 dataframe.to_csv(
-                    f'./final_csv_data/{first_and_last_name[0]}_{first_and_last_name[1]}_final_formatted_csv_data_avg.csv')
+                    f'./final_csv_data/{first_and_last_name[0]}_{first_and_last_name[1]}_final_formatted_csv_data_avg.csv', index=False)
 
         elif (metric == 'max'):
             # APPEND THE FINAL VALUE ON THE FINAL FILE

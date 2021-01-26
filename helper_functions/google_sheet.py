@@ -18,7 +18,6 @@ class Google_Sheets():
 
     def main(self):
         self.get_credentials()
-        self.sheet_range = "Max1!A:I"
         self.current_df_from_online = self.pull_sheet_data()
 
         service = build('sheets', 'v4', credentials=self.credentials)
@@ -33,8 +32,8 @@ class Google_Sheets():
                 passed_values=combined_values)
 
             # CLEAR THE SPREADSHEET
-            request = service.spreadsheets().values().clear(spreadsheetId=self.spreadsheet_id,
-                                                            range=self.sheet_range, body={}).execute()
+            service.spreadsheets().values().clear(spreadsheetId=self.spreadsheet_id,
+                                                  range=self.sheet_range, body={}).execute()
 
             # ADD THE NEW DATA
             resource = {
