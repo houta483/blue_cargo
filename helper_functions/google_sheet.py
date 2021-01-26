@@ -30,14 +30,19 @@ class Google_Sheets():
             combined_values = self.current_df_from_online + incoming_data
 
             filtered_combined_values = self.clean_up_dataframe_and_remove_duplicates(
-                combined_values)
+                passed_values=combined_values)
 
+            # CLEAR THE SPREADSHEET
+            request = service.spreadsheets().values().clear(spreadsheetId=self.spreadsheet_id,
+                                                            range=self.sheet_range, body={}).execute()
+
+            # ADD THE NEW DATA
             resource = {
                 "majorDimension": "ROWS",
                 "values": filtered_combined_values
             }
 
-            service.spreadsheets().values().append(
+            service.spreadsheets().values().update(
                 spreadsheetId=self.spreadsheet_id,
                 range=self.sheet_range,
                 body=resource,
@@ -55,7 +60,7 @@ class Google_Sheets():
                 "values": duplicates_removed_data
             }
 
-            service.spreadsheets().values().append(
+            service.spreadsheets().values().update(
                 spreadsheetId=self.spreadsheet_id,
                 range=self.sheet_range,
                 body=resource,
@@ -71,19 +76,35 @@ class Google_Sheets():
             with open(file_path) as csv_data_file:
                 csv_reader = csv.reader(csv_data_file)
 
-                for data in csv_reader:
-                    csv_data.append(data)
+                for daily_input in csv_reader:
+                    if (daily_input[-1] == ''):
+                        daily_input = daily_input[:-1]
+
+                    elif (".0" in daily_input[-1]):
+                        daily_input[-1] = daily_input[-1][:
+                                                          daily_input[-1].index('.0')]
+
+                    csv_data.append(daily_input)
 
         return csv_data
 
     def clean_up_dataframe_and_remove_duplicates(self, passed_values=None):
+        cached_values = []
+
         if (passed_values == None):
             unique_values_array = OrderedDict((tuple(x), x)
                                               for x in self.current_df_from_online).values()
+            unique_values_array = list(unique_values_array)
         else:
-            unique_values_array = OrderedDict((tuple(x), x)
-                                              for x in passed_values).values()
-        return list(unique_values_array)
+            for daily_input in passed_values:
+                if (daily_input not in cached_values):
+                    cached_values.append(daily_input)
+                else:
+                    continue
+
+            unique_values_array = cached_values
+
+        return unique_values_array
 
     def pull_sheet_data(self):
         service = build('sheets', 'v4', credentials=self.credentials)
@@ -107,6 +128,8 @@ class Google_Sheets():
             data_frame = rows.get('values')
             print("COMPLETE: Data copied")
             value_to_return = data_frame
+
+        # FILTER THE DATA FROM ONLINE
 
         return value_to_return
 

@@ -24,9 +24,6 @@ from selenium import webdriver
 from helper_functions import selenium_helper
 
 
-final_directory = "./original_data"
-
-
 DOCKER_KEY = os.environ.get("AM_I_IN_A_DOCKER_CONTAINER", False)
 
 if DOCKER_KEY:
@@ -42,117 +39,161 @@ elif DOCKER_KEY == False:
 
 
 class Selenium_Chrome_Class:
-    def __init__(self, username, password, current_url):
+    def __init__(self, username, password, current_url, final_directory):
         self.username = username
         self.password = password
         self.current_url = current_url
         self.helper_function_instance = helper_functions.Helper_Functions()
+        self.final_directory = final_directory
 
     def start_driver(self):
-        print("start_driver")
-        driver.get("https://www.libreview.com/")
-        print("sleep 5")
-        time.sleep(5)
+        if (driver.get_cookie('logged_in')):
+            print(
+                'you are already logged in and have already downloaded the patients data')
+        else:
+            print("start_driver")
+            driver.get("https://www.libreview.com/")
+            print("sleep 5")
+            time.sleep(5)
 
     def country_of_residence(self):
-        print("country_of_residence")
-        print("sleep 5")
-        time.sleep(5)
+        if (driver.get_cookie('logged_in')):
+            print(
+                'you are already logged in and have already downloaded the patients data')
+        else:
+            print("country_of_residence")
+            print("sleep 5")
+            time.sleep(5)
 
-        country_of_residence_element = driver.find_element_by_id(
-            "country-select")
-        country_of_residence_usa = driver.find_element_by_xpath(
-            "//*[@id='country-select']/option[47]"
-        )
-        country_of_residence_usa.click()
-        submit_button = driver.find_element_by_id("submit-button")
-        submit_button.click()
-        self.current_url = driver.current_url
+            country_of_residence_element = driver.find_element_by_id(
+                "country-select")
+            country_of_residence_usa = driver.find_element_by_xpath(
+                "//*[@id='country-select']/option[47]"
+            )
+
+            try:
+                country_of_residence_usa.click()
+                submit_button = driver.find_element_by_id("submit-button")
+                submit_button.click()
+                self.current_url = driver.current_url
+
+            except:
+                raise BaseException(
+                    'Could not submit the country of residence')
 
     def populate_login_elements(self):
-        print("populate_login_element")
-        print(self.username, self.password)
-        print("sleep 5")
-        time.sleep(5)
+        if (driver.get_cookie('logged_in')):
+            print(
+                'you are already logged in and have already downloaded the patients data')
+        else:
+            print("populate_login_element")
+            print(self.username, self.password)
+            print("sleep 5")
+            time.sleep(5)
 
-        login_element = driver.find_element_by_id("loginForm-email-input")
-        password_element = driver.find_element_by_id(
-            "loginForm-password-input")
-        login_button_element = driver.find_element_by_id(
-            "loginForm-submit-button")
-        login_element.send_keys(self.username)
-        password_element.send_keys(self.password)
-        login_button_element.click()
+            login_element = driver.find_element_by_id("loginForm-email-input")
+            password_element = driver.find_element_by_id(
+                "loginForm-password-input")
+            login_button_element = driver.find_element_by_id(
+                "loginForm-submit-button")
+            login_element.send_keys(self.username)
+            password_element.send_keys(self.password)
+
+            try:
+                login_button_element.click()
+                driver.add_cookie({
+                    'logged_in': True
+                })
+            except:
+                raise BaseException(
+                    'You could not login so a cookie was not set')
 
     def go_to_patients_page(self):
-        print("go_to_patients_page")
-        print("sleep 5")
-        time.sleep(5)
-        patients_button_element = driver.find_element_by_id(
-            "main-header-dashboard-icon"
-        )
-        patients_button_element.click()
+        if (driver.get_cookie('logged_in')):
+            print(
+                'you are already logged in and have already downloaded the patients data')
+            return
+        else:
+            print("go_to_patients_page")
+            print("sleep 5")
+            time.sleep(5)
+            patients_button_element = driver.find_element_by_id(
+                "main-header-dashboard-icon"
+            )
+            patients_button_element.click()
 
     def patients_table(self):
-        print("patients_table")
-        x = 1
-        time.sleep(10)
+        if (driver.get_cookie('logged_in')):
+            print(
+                'you are already logged in and have already downloaded the patients data')
+        else:
+            print("patients_table")
+            x = 1
 
-        parameter = driver.find_element_by_xpath(
-            f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{x}]/td[1]/div"
-        )
-
-        while parameter:
-            parameter.click()
-            time.sleep(5)
-            profile_button = driver.find_element_by_id(
-                "profile-nav-button-container")
-            profile_button.click()
-            print("profile_button")
+            print('sleep for 10')
             time.sleep(10)
 
-            glucose_history_button = driver.find_element_by_xpath(
-                "//*[@id='reports-nav-button-container']"
+            parameter = driver.find_element_by_xpath(
+                f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{x}]/td[1]/div"
             )
-            glucose_history_button.click()
-            print("glucose_history_button")
-            time.sleep(10)
 
-            try:
-                glucose_reports_button = driver.find_element_by_id(
-                    "newGlucose-glucoseReports-button"
-                )
-                glucose_reports_button.click()
-                print("glucose_repots_button")
-                time.sleep(10)
-            except:
-                glucose_reports_button = driver.find_element_by_id(
-                    "pastGlucoseCard-report-button"
-                )
-                glucose_reports_button.click()
-                print("glucose_repots_button")
+            while parameter:
+                parameter.click()
+                print('sleep for 5')
+                time.sleep(5)
+                profile_button = driver.find_element_by_id(
+                    "profile-nav-button-container")
+                profile_button.click()
+                print("profile_button")
+                print('sleep for 10')
                 time.sleep(10)
 
-            download_glucose_report_button = driver.find_element_by_id(
-                "reports-print-button"
-            )
-            download_glucose_report_button.click()
-            print("download_glucose_report_button")
-            time.sleep(10)
-
-            x += 1
-            driver.get("https://www.libreview.com/dashboard")
-            time.sleep(10)
-
-            try:
-                parameter = driver.find_element_by_xpath(
-                    f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{x}]/td[1]/div"
+                glucose_history_button = driver.find_element_by_xpath(
+                    "//*[@id='reports-nav-button-container']"
                 )
-            except:
-                parameter = False
+                glucose_history_button.click()
+                print("glucose_history_button")
+                print('sleep for 10')
+                time.sleep(10)
+
+                try:
+                    glucose_reports_button = driver.find_element_by_id(
+                        "newGlucose-glucoseReports-button"
+                    )
+                    glucose_reports_button.click()
+                    print("glucose_repots_button")
+                    print('sleep for 10')
+                    time.sleep(10)
+                except:
+                    glucose_reports_button = driver.find_element_by_id(
+                        "pastGlucoseCard-report-button"
+                    )
+                    glucose_reports_button.click()
+                    print("glucose_repots_button")
+                    print('sleep for 10')
+                    time.sleep(10)
+
+                download_glucose_report_button = driver.find_element_by_id(
+                    "reports-print-button"
+                )
+                download_glucose_report_button.click()
+                print("download_glucose_report_button")
+                print('sleep for 10')
+                time.sleep(10)
+
+                x += 1
+                driver.get("https://www.libreview.com/dashboard")
+                print('sleep for 10')
+                time.sleep(10)
+
+                try:
+                    parameter = driver.find_element_by_xpath(
+                        f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{x}]/td[1]/div"
+                    )
+                except:
+                    parameter = False
 
     def move_files(self):
-        driver.quit()
         print("move_files")
         current_day = datetime.date.today()
         formatted_date = datetime.date.strftime(current_day, "%m-%d-%Y")
@@ -162,7 +203,8 @@ class Selenium_Chrome_Class:
             if re.search(formatted_date, str(filename)) and filename.endswith(".pdf"):
                 file_path_to_move = os.path.join(starting_directory, filename)
                 filename = filename.replace(" ", "")
-                os.rename(file_path_to_move, f"original_data/{filename}")
+                shutil.copyfile(file_path_to_move, f"original_data/{filename}")
+                # os.rename(file_path_to_move, f"original_data/{filename}")
             else:
                 continue
 
@@ -170,8 +212,8 @@ class Selenium_Chrome_Class:
         print("preprocess_pdfs")
         data = []
 
-        for files in sorted(os.listdir(final_directory)):
-            file_path_to_scrape = os.path.join(final_directory, files)
+        for files in sorted(os.listdir(self.final_directory)):
+            file_path_to_scrape = os.path.join(self.final_directory, files)
             pdfWriter = PdfFileWriter()
             writable_pdf = PdfFileReader(file_path_to_scrape)
 
@@ -233,41 +275,63 @@ class Selenium_Chrome_Class:
 
         google_sheets_module.main()
 
-    def clean_up(self):
-        print("clean_up")
+    def initial_clean_up(self):
+        print("initial clean_up")
         list_of_dirs = [
-            glob.glob("Downloads/*"),
             glob.glob("extracted_and_filtered_data/*"),
             glob.glob("extracted_data/*"),
             glob.glob("final_csv_data/*"),
             glob.glob("original_data/*"),
             glob.glob("preprocessed_data/*"),
-            glob.glob("truncated_data/*"),
+            glob.glob("truncated_data/*")
         ]
 
         for directory in list_of_dirs:
             for files in directory:
                 os.remove(files)
 
-    def run(self, metric):
-        self.start_driver()
-        self.country_of_residence()
-        self.populate_login_elements()
-        self.go_to_patients_page()
-        self.patients_table()
-        self.move_files()
-        self.create_truncated_data_files(metric=metric)
-        self.write_truncated_data_files_to_extracted_data(metric=metric)
-        self.filter_txt_data(metric=metric)
-        self.convert_data_to_csv(metric=metric)
-        self.upload_data(metric=metric)
-        self.clean_up()
+    def final_clean_up(self):
+        print("final clean_up")
+        list_of_dirs = [
+            glob.glob("./Downloads/"),
+            glob.glob("extracted_and_filtered_data/*"),
+            glob.glob("extracted_data/*"),
+            glob.glob("final_csv_data/*"),
+            glob.glob("original_data/*"),
+            glob.glob("preprocessed_data/*"),
+            glob.glob("truncated_data/*")
+        ]
+
+        for directory in list_of_dirs:
+            for files in directory:
+                os.remove(files)
+
+    def run(self):
+        metrics = ['max', 'avg']
+
+        for metric in metrics:
+            self.start_driver()
+            self.country_of_residence()
+            self.populate_login_elements()
+            self.go_to_patients_page()
+            self.patients_table()
+            self.move_files()
+            self.create_truncated_data_files(metric=metric)
+            self.write_truncated_data_files_to_extracted_data(metric=metric)
+            self.filter_txt_data(metric=metric)
+            self.convert_data_to_csv(metric=metric)
+            self.upload_data(metric=metric)
+            self.initial_clean_up()
+
+        self.final_clean_up()
+        driver.quit()
 
 
 app = Selenium_Chrome_Class(
     username=os.environ["USERNAME"],
     password=os.environ["GLUCOSE_PASSWORD"],
     current_url="https://www.libreview.com/",
+    final_directory="./original_data"
 )
 
-app.run('max')
+app.run()
