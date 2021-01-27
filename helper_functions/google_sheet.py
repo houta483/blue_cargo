@@ -26,10 +26,17 @@ class Google_Sheets():
             print('there is data already in the sheet')
 
             incoming_data = self.parse_csv_data()
+
             combined_values = self.current_df_from_online + incoming_data
 
+            filtered_incoming_data = self.clean_up_dataframe_and_remove_duplicates(
+                passed_values=incoming_data)
+
+            up_to_date_data = self.loop_through_both_sets_of_data_simultaneously(
+                self.current_df_from_online, filtered_incoming_data)
+
             filtered_combined_values = self.clean_up_dataframe_and_remove_duplicates(
-                passed_values=combined_values)
+                passed_values=up_to_date_data)
 
             # CLEAR THE SPREADSHEET
             service.spreadsheets().values().clear(spreadsheetId=self.spreadsheet_id,
@@ -86,6 +93,20 @@ class Google_Sheets():
                     csv_data.append(daily_input)
 
         return csv_data
+
+    def loop_through_both_sets_of_data_simultaneously(self, current_data_from_online, incoming_data):
+        print('loop through both')
+        correct_data_with_newer_values_for_mid_day_updates = []
+
+        for from_online_daily_reading, incoming_data_daily_reading in sorted(zip(current_data_from_online, incoming_data)):
+            if (from_online_daily_reading == incoming_data_daily_reading):
+                correct_data_with_newer_values_for_mid_day_updates.append(
+                    from_online_daily_reading)
+            else:
+                correct_data_with_newer_values_for_mid_day_updates.append(
+                    incoming_data_daily_reading)
+
+        return correct_data_with_newer_values_for_mid_day_updates
 
     def clean_up_dataframe_and_remove_duplicates(self, passed_values=None):
         cached_values = []
