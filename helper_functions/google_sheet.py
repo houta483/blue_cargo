@@ -32,11 +32,11 @@ class Google_Sheets():
             filtered_incoming_data = self.clean_up_dataframe_and_remove_duplicates(
                 passed_values=incoming_data)
 
-            up_to_date_data = self.loop_through_both_sets_of_data_simultaneously(
-                self.current_df_from_online, filtered_incoming_data)
+            # up_to_date_data = self.loop_through_both_sets_of_data_simultaneously(
+            # self.current_df_from_online, filtered_incoming_data)
 
-            filtered_combined_values = self.clean_up_dataframe_and_remove_duplicates(
-                passed_values=up_to_date_data, final_pass=True)
+            # filtered_combined_values = self.clean_up_dataframe_and_remove_duplicates(
+            # passed_values=up_to_date_data, final_pass=True)
 
             # CLEAR THE SPREADSHEET
             service.spreadsheets().values().clear(spreadsheetId=self.spreadsheet_id,
@@ -45,7 +45,7 @@ class Google_Sheets():
             # ADD THE NEW DATA
             resource = {
                 "majorDimension": "ROWS",
-                "values": filtered_combined_values
+                "values": filtered_incoming_data
             }
 
             service.spreadsheets().values().update(

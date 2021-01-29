@@ -172,9 +172,9 @@ class Selenium_Chrome_Class:
         current_day = datetime.date.today()
         formatted_date = datetime.date.strftime(current_day, "%m-%d-%Y")
 
-        for filename in sorted(os.listdir("./Downloads")):
+        for filename in sorted(os.listdir("downloads")):
             if re.search(formatted_date, str(filename)) and filename.endswith(".pdf"):
-                file_path_to_move = os.path.join("./Downloads", filename)
+                file_path_to_move = os.path.join("downloads", filename)
                 filename = filename.replace(" ", "")
                 shutil.copyfile(file_path_to_move, f"original_data/{filename}")
             else:
@@ -258,7 +258,7 @@ class Selenium_Chrome_Class:
     def final_clean_up(self):
         print("final clean_up")
         list_of_dirs = [
-            glob.glob("Downloads/*"),
+            glob.glob("downloads/*"),
             glob.glob("extracted_and_filtered_data/*"),
             glob.glob("extracted_data/*"),
             glob.glob("final_csv_data/*"),

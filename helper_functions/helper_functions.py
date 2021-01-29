@@ -314,7 +314,7 @@ class Helper_Functions():
                     str(max_or_min(cache)) + os.linesep)
 
         # CONVERT TXT FILE FROM EXTRACTED AND FILTERED TO CSV
-        for extracted_and_filtered_data_file in sorted(os.listdir('./extracted_and_filtered_data')):
+        for extracted_and_filtered_data_file in sorted(os.listdir('extracted_and_filtered_data')):
             first_and_last_name = extracted_and_filtered_data_file.split('_')[
                 0: 2]
 
