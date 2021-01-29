@@ -39,12 +39,11 @@ elif DOCKER_KEY == False:
 
 
 class Selenium_Chrome_Class:
-    def __init__(self, username, password, current_url, final_directory):
+    def __init__(self, username, password, current_url):
         self.username = username
         self.password = password
         self.current_url = current_url
         self.helper_function_instance = helper_functions.Helper_Functions()
-        self.final_directory = final_directory
 
     def start_driver(self):
         print("start_driver")
@@ -168,60 +167,52 @@ class Selenium_Chrome_Class:
             except:
                 parameter = False
 
-    def move_files(self):
+    def move_files_from_downloads_to_original_data_folder(self):
         print("move_files")
         current_day = datetime.date.today()
         formatted_date = datetime.date.strftime(current_day, "%m-%d-%Y")
-        starting_directory = "./Downloads"
 
-        for filename in sorted(os.listdir(starting_directory)):
+        for filename in sorted(os.listdir("./Downloads")):
             if re.search(formatted_date, str(filename)) and filename.endswith(".pdf"):
-                file_path_to_move = os.path.join(starting_directory, filename)
+                file_path_to_move = os.path.join("./Downloads", filename)
                 filename = filename.replace(" ", "")
                 shutil.copyfile(file_path_to_move, f"original_data/{filename}")
-                # os.rename(file_path_to_move, f"original_data/{filename}")
             else:
                 continue
 
-    def create_truncated_data_files(self, metric):
+    def get_page_numbers(self, metric):
         print("preprocess_pdfs")
         data = []
 
-        for files in sorted(os.listdir(self.final_directory)):
-            file_path_to_scrape = os.path.join(self.final_directory, files)
+        for files in sorted(os.listdir("original_data")):
+            path_to_file_that_we_will_use_to_get_page_numbers = os.path.join(
+                "original_data", files)
+
             pdfWriter = PdfFileWriter()
-            writable_pdf = PdfFileReader(file_path_to_scrape)
 
             if files.endswith(".pdf"):
-                with open(file_path_to_scrape, "rb") as f:
+                with open(path_to_file_that_we_will_use_to_get_page_numbers, "rb") as f:
                     text_from_pdf = pdftotext.PDF(f)
 
-            if metric == "avg":
-                pages = self.helper_function_instance.find_correct_pages(
-                    "Weekly Summary", text_from_pdf
-                )
-                print(pages)
+            pages = self.helper_function_instance.find_correct_pages(
+                metric=metric,
+                pdf=text_from_pdf
+            )
 
-                self.helper_function_instance.create_truncated_data_files_helper_function(
-                    pages=pages,
-                    writable_pdf=writable_pdf,
-                    where_to_save_pdf="truncated_data",
-                    person=files,
-                    metric=metric
-                )
+            self.create_truncated_data_files_from_pages_from_get_page_numbers(
+                pages=pages, file_name_from_original_data_loop=files, metric=metric)
 
-            elif metric == "max":
-                pages = self.helper_function_instance.find_correct_pages(
-                    "Daily Log", text_from_pdf)
-                print(pages)
+    def create_truncated_data_files_from_pages_from_get_page_numbers(self, pages, file_name_from_original_data_loop, metric):
+        text_from_original_data_file = PdfFileReader(
+            f"original_data/{file_name_from_original_data_loop}")
 
-                self.helper_function_instance.create_truncated_data_files_helper_function(
-                    metric=metric,
-                    pages=pages,
-                    writable_pdf=writable_pdf,
-                    where_to_save_pdf="truncated_data",
-                    person=files,
-                )
+        self.helper_function_instance.create_truncated_data_files_helper_function(
+            pages=pages,
+            text_from_original_data_file=text_from_original_data_file,
+            where_to_save_pdf="truncated_data",
+            arg_we_will_use_to_get_person_and_date_data=file_name_from_original_data_loop,
+            metric=metric
+        )
 
     def write_truncated_data_files_to_extracted_data(self, metric):
         self.helper_function_instance.write_to_extracted_data(
@@ -235,18 +226,17 @@ class Selenium_Chrome_Class:
 
     def upload_data(self, metric):
         if (metric == 'avg'):
-            google_sheets_module = google_sheet.Google_Sheets(
-                scopes=["https://www.googleapis.com/auth/spreadsheets"],
-                spreadsheet_id=os.environ["SPREADSHEET_ID"],
-                sheet_range="Average1!A:I",
-            )
-
+            long_form_metric = 'Average'
         elif (metric == 'max'):
-            google_sheets_module = google_sheet.Google_Sheets(
-                scopes=["https://www.googleapis.com/auth/spreadsheets"],
-                spreadsheet_id=os.environ["SPREADSHEET_ID"],
-                sheet_range="Max1!A:I",
-            )
+            long_form_metric = 'Max'
+        elif (metric == 'min'):
+            long_form_metric = 'Min'
+
+        google_sheets_module = google_sheet.Google_Sheets(
+            scopes=["https://www.googleapis.com/auth/spreadsheets"],
+            spreadsheet_id=os.environ["SPREADSHEET_ID"],
+            sheet_range=f"{long_form_metric}1!A:I",
+        )
 
         google_sheets_module.main()
 
@@ -268,7 +258,7 @@ class Selenium_Chrome_Class:
     def final_clean_up(self):
         print("final clean_up")
         list_of_dirs = [
-            glob.glob("./Downloads/"),
+            glob.glob("Downloads/*"),
             glob.glob("extracted_and_filtered_data/*"),
             glob.glob("extracted_data/*"),
             glob.glob("final_csv_data/*"),
@@ -282,7 +272,7 @@ class Selenium_Chrome_Class:
                 os.remove(files)
 
     def run(self):
-        metrics = ['max', 'avg']
+        metrics = ('max', 'avg', 'min')
 
         for index, metric in enumerate(metrics):
             if (index == 0):
@@ -291,17 +281,26 @@ class Selenium_Chrome_Class:
                 self.populate_login_elements()
                 self.go_to_patients_page()
                 self.patients_table()
-                self.move_files()
-                self.create_truncated_data_files(metric=metric)
+                self.move_files_from_downloads_to_original_data_folder()
+                self.get_page_numbers(metric=metric)
                 self.write_truncated_data_files_to_extracted_data(
                     metric=metric)
                 self.filter_txt_data(metric=metric)
                 self.convert_data_to_csv(metric=metric)
                 self.upload_data(metric=metric)
                 self.initial_clean_up()
-            else:
-                self.move_files()
-                self.create_truncated_data_files(metric=metric)
+            elif (metric == 'avg'):
+                self.move_files_from_downloads_to_original_data_folder()
+                self.get_page_numbers(metric=metric)
+                self.write_truncated_data_files_to_extracted_data(
+                    metric=metric)
+                self.filter_txt_data(metric=metric)
+                self.convert_data_to_csv(metric=metric)
+                self.upload_data(metric=metric)
+                self.initial_clean_up()
+            elif (metric == 'min'):
+                self.move_files_from_downloads_to_original_data_folder()
+                self.get_page_numbers(metric=metric)
                 self.write_truncated_data_files_to_extracted_data(
                     metric=metric)
                 self.filter_txt_data(metric=metric)
@@ -317,7 +316,6 @@ app = Selenium_Chrome_Class(
     username=os.environ["USERNAME"],
     password=os.environ["GLUCOSE_PASSWORD"],
     current_url="https://www.libreview.com/",
-    final_directory="./original_data"
 )
 
 app.run()

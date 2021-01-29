@@ -36,7 +36,7 @@ class Google_Sheets():
                 self.current_df_from_online, filtered_incoming_data)
 
             filtered_combined_values = self.clean_up_dataframe_and_remove_duplicates(
-                passed_values=up_to_date_data)
+                passed_values=up_to_date_data, final_pass=True)
 
             # CLEAR THE SPREADSHEET
             service.spreadsheets().values().clear(spreadsheetId=self.spreadsheet_id,
@@ -108,8 +108,9 @@ class Google_Sheets():
 
         return correct_data_with_newer_values_for_mid_day_updates
 
-    def clean_up_dataframe_and_remove_duplicates(self, passed_values=None):
+    def clean_up_dataframe_and_remove_duplicates(self, passed_values=None, final_pass=False):
         cached_values = []
+        # TODO - maybe the final pass doesnt matter
 
         if (passed_values == None):
             unique_values_array = OrderedDict((tuple(x), x)
@@ -117,8 +118,10 @@ class Google_Sheets():
             unique_values_array = list(unique_values_array)
         else:
             for daily_input in passed_values:
-                if (daily_input not in cached_values):
+                if ((daily_input not in cached_values) and ("First Name" not in daily_input)):
                     cached_values.append(daily_input)
+                elif ((daily_input not in cached_values) and ("First Name" in daily_input)):
+                    cached_values.insert(0, daily_input)
                 else:
                     continue
 
