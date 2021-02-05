@@ -1,321 +1,63 @@
-from datetime import timedelta
-from six.moves.urllib.request import urlopen
-import re
 import glob
-import io
-from selenium import webdriver
-import os
 import time
-import datetime
-import re
-import shutil
-from PyPDF2 import PdfFileReader, PdfFileWriter
-import textract
-from helper_functions import helper_functions
+from helper_functions.selenium_navigation import Selenium_Chrome_Class
+from helper_functions.google_sheet import Google_Sheets
+from googleapiclient.discovery import build
 from helper_functions import google_sheet
-import pdftotext
-from pdf2docx import parse
-from PIL import Image
-import pytesseract
-import sys
-from pdf2image import convert_from_path
-from selenium.webdriver.chrome.options import Options
+import os
 from selenium import webdriver
+import csv
 from helper_functions import selenium_helper
 
 
-DOCKER_KEY = os.environ.get("AM_I_IN_A_DOCKER_CONTAINER", False)
-
-if DOCKER_KEY:
-    chrome_options = selenium_helper.set_chrome_options()
-    driver = webdriver.Chrome(options=chrome_options)
-    print("I am running in a Docker container")
-elif DOCKER_KEY == False:
-    driver = webdriver.Chrome("utils/chromedriver")
-    os.environ["GLUCOSE_PASSWORD"] = "French44!"
-    os.environ["USERNAME"] = "stevenhoughtonjr1@gmail.com"
-    os.environ["SPREADSHEET_ID"] = "1wwGhXxKS9dXEx6YM5p9qTRLtng1Rr6ASd-y07MCZaVs"
-    print("I am on local machine")
-
-
-class Selenium_Chrome_Class:
-    def __init__(self, username, password, current_url):
-        self.username = username
-        self.password = password
-        self.current_url = current_url
-        self.helper_function_instance = helper_functions.Helper_Functions()
-
-    def start_driver(self):
-        print("start_driver")
-        driver.get("https://www.libreview.com/")
-        print("sleep 5")
-        time.sleep(5)
-
-    def country_of_residence(self):
-        print("country_of_residence")
-        print("sleep 5")
-        time.sleep(5)
-
-        country_of_residence_element = driver.find_element_by_id(
-            "country-select")
-        country_of_residence_usa = driver.find_element_by_xpath(
-            "//*[@id='country-select']/option[47]"
-        )
-
-        try:
-            country_of_residence_usa.click()
-            submit_button = driver.find_element_by_id("submit-button")
-            submit_button.click()
-            self.current_url = driver.current_url
-
-        except:
-            raise BaseException(
-                'Could not submit the country of residence')
-
-    def populate_login_elements(self):
-        print("populate_login_element")
-        print("sleep 5")
-        time.sleep(5)
-
-        login_element = driver.find_element_by_id("loginForm-email-input")
-        password_element = driver.find_element_by_id(
-            "loginForm-password-input")
-        login_button_element = driver.find_element_by_id(
-            "loginForm-submit-button")
-        login_element.send_keys(self.username)
-        password_element.send_keys(self.password)
-
-        try:
-            login_button_element.click()
-        except:
-            raise BaseException(
-                'You could not login so a cookie was not set')
-
-    def go_to_patients_page(self):
-        print("go_to_patients_page")
-        print("sleep 5")
-        time.sleep(5)
-        patients_button_element = driver.find_element_by_id(
-            "main-header-dashboard-icon"
-        )
-        patients_button_element.click()
-
-    def patients_table(self):
-        print("patients_table")
-        x = 1
-
-        print('sleep for 10')
-        time.sleep(10)
-
-        parameter = driver.find_element_by_xpath(
-            f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{x}]/td[1]/div"
-        )
-
-        while parameter:
-            parameter.click()
-            print('sleep for 5')
-            time.sleep(5)
-            profile_button = driver.find_element_by_id(
-                "profile-nav-button-container")
-            profile_button.click()
-            print("profile_button")
-            print('sleep for 10')
-            time.sleep(10)
-
-            glucose_history_button = driver.find_element_by_xpath(
-                "//*[@id='reports-nav-button-container']"
-            )
-            glucose_history_button.click()
-            print("glucose_history_button")
-            print('sleep for 10')
-            time.sleep(10)
-
-            try:
-                glucose_reports_button = driver.find_element_by_id(
-                    "newGlucose-glucoseReports-button"
-                )
-                glucose_reports_button.click()
-                print("glucose_repots_button")
-                print('sleep for 10')
-                time.sleep(10)
-            except:
-                glucose_reports_button = driver.find_element_by_id(
-                    "pastGlucoseCard-report-button"
-                )
-                glucose_reports_button.click()
-                print("glucose_repots_button")
-                print('sleep for 10')
-                time.sleep(10)
-
-            download_glucose_report_button = driver.find_element_by_id(
-                "reports-print-button"
-            )
-            download_glucose_report_button.click()
-            print("download_glucose_report_button")
-            print('sleep for 10')
-            time.sleep(10)
-
-            x += 1
-            driver.get("https://www.libreview.com/dashboard")
-            print('sleep for 10')
-            time.sleep(10)
-
-            try:
-                parameter = driver.find_element_by_xpath(
-                    f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{x}]/td[1]/div"
-                )
-            except:
-                parameter = False
-
-    def move_files_from_downloads_to_original_data_folder(self):
-        print("move_files")
-        current_day = datetime.date.today()
-        formatted_date = datetime.date.strftime(current_day, "%m-%d-%Y")
-
-        for filename in sorted(os.listdir("downloads")):
-            if re.search(formatted_date, str(filename)) and filename.endswith(".pdf"):
-                file_path_to_move = os.path.join("downloads", filename)
-                filename = filename.replace(" ", "")
-                shutil.copyfile(file_path_to_move, f"original_data/{filename}")
-            else:
-                continue
-
-    def get_page_numbers(self, metric):
-        print("preprocess_pdfs")
-        data = []
-
-        for files in sorted(os.listdir("original_data")):
-            path_to_file_that_we_will_use_to_get_page_numbers = os.path.join(
-                "original_data", files)
-
-            pdfWriter = PdfFileWriter()
-
-            if files.endswith(".pdf"):
-                with open(path_to_file_that_we_will_use_to_get_page_numbers, "rb") as f:
-                    text_from_pdf = pdftotext.PDF(f)
-
-            pages = self.helper_function_instance.find_correct_pages(
-                metric=metric,
-                pdf=text_from_pdf
-            )
-
-            self.create_truncated_data_files_from_pages_from_get_page_numbers(
-                pages=pages, file_name_from_original_data_loop=files, metric=metric)
-
-    def create_truncated_data_files_from_pages_from_get_page_numbers(self, pages, file_name_from_original_data_loop, metric):
-        text_from_original_data_file = PdfFileReader(
-            f"original_data/{file_name_from_original_data_loop}")
-
-        self.helper_function_instance.create_truncated_data_files_helper_function(
-            pages=pages,
-            text_from_original_data_file=text_from_original_data_file,
-            where_to_save_pdf="truncated_data",
-            arg_we_will_use_to_get_person_and_date_data=file_name_from_original_data_loop,
-            metric=metric
-        )
-
-    def write_truncated_data_files_to_extracted_data(self, metric):
-        self.helper_function_instance.write_to_extracted_data(
-            metric=metric)
-
-    def filter_txt_data(self, metric):
-        self.helper_function_instance.filter_extracted_data(metric=metric)
-
-    def convert_data_to_csv(self, metric):
-        self.helper_function_instance.txt_to_csv(metric)
-
-    def upload_data(self, metric):
-        if (metric == 'avg'):
-            long_form_metric = 'Average'
-        elif (metric == 'max'):
-            long_form_metric = 'Max'
-        elif (metric == 'min'):
-            long_form_metric = 'Min'
-
+class Glucose_Slim:
+    def upload_data(self):
         google_sheets_module = google_sheet.Google_Sheets(
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
             spreadsheet_id=os.environ["SPREADSHEET_ID"],
-            sheet_range=f"{long_form_metric}1!A:I",
+            sheet_range="Table_Metrics!A:BR",
         )
 
-        google_sheets_module.main()
+        google_sheets_module.get_credentials()
 
-    def initial_clean_up(self):
-        print("initial clean_up")
-        list_of_dirs = [
-            glob.glob("extracted_and_filtered_data/*"),
-            glob.glob("extracted_data/*"),
-            glob.glob("final_csv_data/*"),
-            glob.glob("original_data/*"),
-            glob.glob("preprocessed_data/*"),
-            glob.glob("truncated_data/*")
-        ]
+        service = build("sheets", "v4", credentials=google_sheets_module.credentials)
 
-        for directory in list_of_dirs:
-            for files in directory:
-                os.remove(files)
+        with open("csvfile.csv") as csv_data_file:
+            csv_data = []
+            csv_reader = csv.reader(csv_data_file)
 
-    def final_clean_up(self):
+            for line in csv_reader:
+                csv_data.append(line)
+
+            content = csv_data
+
+        resource = {"majorDimension": "ROWS", "values": content}
+
+        service.spreadsheets().values().append(
+            spreadsheetId=google_sheets_module.spreadsheet_id,
+            range=google_sheets_module.sheet_range,
+            body=resource,
+            valueInputOption="USER_ENTERED",
+        ).execute()
+
+    def clean_up(self):
         print("final clean_up")
-        list_of_dirs = [
-            glob.glob("downloads/*"),
-            glob.glob("extracted_and_filtered_data/*"),
-            glob.glob("extracted_data/*"),
-            glob.glob("final_csv_data/*"),
-            glob.glob("original_data/*"),
-            glob.glob("preprocessed_data/*"),
-            glob.glob("truncated_data/*")
-        ]
-
-        for directory in list_of_dirs:
-            for files in directory:
-                os.remove(files)
-
-    def run(self):
-        metrics = ('max', 'avg', 'min')
-
-        for index, metric in enumerate(metrics):
-            if (index == 0):
-                self.start_driver()
-                self.country_of_residence()
-                self.populate_login_elements()
-                self.go_to_patients_page()
-                self.patients_table()
-                self.move_files_from_downloads_to_original_data_folder()
-                self.get_page_numbers(metric=metric)
-                self.write_truncated_data_files_to_extracted_data(
-                    metric=metric)
-                self.filter_txt_data(metric=metric)
-                self.convert_data_to_csv(metric=metric)
-                self.upload_data(metric=metric)
-                self.initial_clean_up()
-            elif (metric == 'avg'):
-                self.move_files_from_downloads_to_original_data_folder()
-                self.get_page_numbers(metric=metric)
-                self.write_truncated_data_files_to_extracted_data(
-                    metric=metric)
-                self.filter_txt_data(metric=metric)
-                self.convert_data_to_csv(metric=metric)
-                self.upload_data(metric=metric)
-                self.initial_clean_up()
-            elif (metric == 'min'):
-                self.move_files_from_downloads_to_original_data_folder()
-                self.get_page_numbers(metric=metric)
-                self.write_truncated_data_files_to_extracted_data(
-                    metric=metric)
-                self.filter_txt_data(metric=metric)
-                self.convert_data_to_csv(metric=metric)
-                self.upload_data(metric=metric)
-                self.initial_clean_up()
-
-        self.final_clean_up()
-        driver.quit()
+        os.remove("csvfile.csv")
 
 
-app = Selenium_Chrome_Class(
+app = Glucose_Slim()
+selenium_navigator = Selenium_Chrome_Class(
     username=os.environ["USERNAME"],
     password=os.environ["GLUCOSE_PASSWORD"],
     current_url="https://www.libreview.com/",
 )
 
-app.run()
+if __name__ == "__main__":
+    selenium_navigator.start_driver()
+    selenium_navigator.country_of_residence()
+    selenium_navigator.populate_login_elements()
+    selenium_navigator.go_to_patients_page()
+    selenium_navigator.get_all_data_from_patients_table()
+
+    app.upload_data()
+    app.clean_up()

@@ -1,3 +1,4 @@
 {
-  "python.pythonPath": "/Users/Tanner/code/products/glucose/env/bin/python3"
+"python.pythonPath": "/Users/Tanner/code/products/slim_glucose/env/bin/python3",
+"python.formatting.provider": "black"
 }
