@@ -86,10 +86,10 @@ class Selenium_Chrome_Class:
 
     def get_all_data_from_patients_table(self):
         print("patients_table")
-        now = datetime.datetime.now()
-        timezone = pytz.timezone("America/Chicago")
-        timezoned_time = timezone.localize(now)
-        dt_string = timezoned_time.strftime("%m/%d/%y %H:%M:%S")
+        now_time = datetime.datetime.now(pytz.timezone("America/Chicago"))
+        central_time_zone = now_time.strftime("%m/%d/%y %H:%M:%S")
+
+        print(central_time_zone)
 
         row_index = 1
         cell_index = 1
@@ -110,7 +110,7 @@ class Selenium_Chrome_Class:
             while cell:
                 if first_cell == True:
                     with open("csvfile.csv", "a") as file:
-                        file.write(dt_string + ",")
+                        file.write(central_time_zone + ",")
 
                     first_cell = False
 
