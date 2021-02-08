@@ -14,8 +14,6 @@ class Glucose_Slim:
     def upload_data(self):
         google_sheets_module = google_sheet.Google_Sheets(
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
-            spreadsheet_id=os.environ["SPREADSHEET_ID"],
-            sheet_range="Table_Metrics!A:A",
         )
 
         google_sheets_module.get_credentials()
@@ -34,8 +32,8 @@ class Glucose_Slim:
         resource = {"majorDimension": "ROWS", "values": content}
 
         service.spreadsheets().values().append(
-            spreadsheetId=google_sheets_module.spreadsheet_id,
-            range=google_sheets_module.sheet_range,
+            spreadsheetId=os.environ["SPREADSHEET_ID"],
+            range="Table_Metrics!A:A",
             body=resource,
             valueInputOption="USER_ENTERED",
         ).execute()

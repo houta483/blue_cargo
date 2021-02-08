@@ -9,12 +9,9 @@ import csv
 
 
 class Google_Sheets:
-    def __init__(self, scopes, spreadsheet_id, sheet_range):
+    def __init__(self, scopes):
         self.scopes = scopes
-        self.spreadsheet_id = spreadsheet_id
-        self.sheet_range = sheet_range
         self.credentials = None
-        self.current_df_from_online = []
 
     def get_credentials(self):
         if os.path.exists("config/token.pickle"):
