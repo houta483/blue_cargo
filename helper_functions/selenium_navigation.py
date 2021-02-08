@@ -89,10 +89,7 @@ class Selenium_Chrome_Class:
         now = datetime.datetime.now()
         timezone = pytz.timezone("America/Chicago")
         timezoned_time = timezone.localize(now)
-
-        print(timezoned_time)
-
-        dt_string = now.strftime("%m/%d/%y %H:%M:%S")
+        dt_string = timezoned_time.strftime("%m/%d/%y %H:%M:%S")
 
         row_index = 1
         cell_index = 1
