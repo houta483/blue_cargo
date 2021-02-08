@@ -15,7 +15,7 @@ class Glucose_Slim:
         google_sheets_module = google_sheet.Google_Sheets(
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
             spreadsheet_id=os.environ["SPREADSHEET_ID"],
-            sheet_range="Table_Metrics!A:BR",
+            sheet_range="Table_Metrics!A:A",
         )
 
         google_sheets_module.get_credentials()
@@ -61,3 +61,6 @@ if __name__ == "__main__":
 
     app.upload_data()
     app.clean_up()
+
+    print("sleeping for two min to get the timing right")
+    time.sleep(120)

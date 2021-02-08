@@ -89,9 +89,6 @@ class Selenium_Chrome_Class:
         now = datetime.datetime.now()
         dt_string = now.strftime("%m/%d/%y %H:%M:%S")
 
-        with open("csvfile.csv", "a") as file:
-            file.write(str(dt_string + "\n"))
-
         row_index = 1
         cell_index = 1
 
@@ -107,11 +104,19 @@ class Selenium_Chrome_Class:
         )
 
         while row:
+            first_cell = True
             while cell:
-                with open("csvfile.csv", "a") as file:
-                    file.write(str(cell.text + ","))
+                if first_cell == True:
+                    with open("csvfile.csv", "a") as file:
+                        file.write(dt_string + ",")
 
-                cell_index += 1
+                    first_cell = False
+
+                else:
+                    with open("csvfile.csv", "a") as file:
+                        file.write(str(cell.text + ","))
+
+                    cell_index += 1
 
                 try:
                     cell = driver.find_element_by_xpath(
@@ -135,4 +140,9 @@ class Selenium_Chrome_Class:
                         f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{row_index}]/td[{cell_index}]"
                     )
                 except:
+                    with open("csvfile.csv", "a") as file:
+                        file.write(
+                            "-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-"
+                        )
+
                     row = False
