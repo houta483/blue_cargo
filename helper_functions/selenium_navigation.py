@@ -1,4 +1,3 @@
-from datetime import timedelta
 import re
 import glob
 import io
@@ -6,6 +5,7 @@ from selenium import webdriver
 import os
 import time
 import datetime
+import pytz
 import shutil
 from helper_functions import google_sheet
 import sys
@@ -87,6 +87,11 @@ class Selenium_Chrome_Class:
     def get_all_data_from_patients_table(self):
         print("patients_table")
         now = datetime.datetime.now()
+        timezone = pytz.timezone("America/Chicago")
+        timezoned_time = timezone.localize(now)
+
+        print(timezoned_time)
+
         dt_string = now.strftime("%m/%d/%y %H:%M:%S")
 
         row_index = 1
@@ -142,7 +147,7 @@ class Selenium_Chrome_Class:
                 except:
                     with open("csvfile.csv", "a") as file:
                         file.write(
-                            "-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-"
+                            "-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-"
                         )
 
                     row = False
