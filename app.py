@@ -61,4 +61,4 @@ if __name__ == "__main__":
     app.clean_up()
 
     print("sleeping for two min to get the timing right")
-    time.sleep(120)
+    time.sleep(720)
