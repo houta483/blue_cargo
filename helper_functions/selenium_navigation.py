@@ -8,11 +8,15 @@ import pytz
 import shutil
 import sys
 import requests
-from helper_functions import google_sheet
+import json
+
+# from helper_functions import google_sheet
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
-from helper_functions import selenium_helper
+from helper_functions.captcha_helper import *
+
+# from helper_functions import selenium_helper
 
 DOCKER_KEY = os.environ.get("AM_I_IN_A_DOCKER_CONTAINER", False)
 
@@ -33,6 +37,7 @@ class Selenium_Chrome_Class:
         self.username = username
         self.password = password
         self.current_url = current_url
+        self.token = None
 
     def start_driver(self):
         print("start_driver")
@@ -73,6 +78,12 @@ class Selenium_Chrome_Class:
 
         try:
             login_button_element.click()
+            time.sleep(3)
+
+            token = driver.execute_script(
+                "return window.sessionStorage.getItem('token')"
+            )
+            self.token = json.loads(token)["token"]
         except:
             raise BaseException("You could not login so a cookie was not set")
 
@@ -111,97 +122,6 @@ class Selenium_Chrome_Class:
 
         return patients_cell
 
-    def get_k_parameter_re_captcha_v2(self, driver) -> str:
-        iframe_with_k_parameter = driver.find_element_by_xpath(
-            '//*[@id="exportData-reCAPTCHA"]/div/div/div/div/iframe'
-        )
-        src_attribute = iframe_with_k_parameter.get_attribute("src")
-        regex_pattern = "((k=).+?(?=&))"
-        k_parameter = re.search(regex_pattern, src_attribute).group()[2:]
-
-        return k_parameter
-
-    def re_captcha_v2_post(self, driver) -> str:
-        print("re_captcha_v2_post")
-        post_api_endpoint = "http://2captcha.com/in.php"
-
-        api_key = os.getenv("CAPTCHA_API_KEY")
-        post_method = "userrecaptcha"
-        post_google_key = self.get_k_parameter_re_captcha_v2(driver=driver)
-        post_page_url = driver.current_url
-
-        post_api_params = {
-            "key": api_key,
-            "method": post_method,
-            "googlekey": post_google_key,
-            "pageurl": post_page_url,
-        }
-
-        id_re_captcha_v2 = requests.post(
-            url=post_api_endpoint, params=post_api_params, json=1
-        ).text[3:]
-        time.sleep(20)
-
-        return id_re_captcha_v2
-
-    def g_recaptcha_response(self, driver, answer_token) -> None:
-        javascript_make_textarea_visible_string = (
-            f"document.getElementById('g-recaptcha-response').style.display = 'inline'"
-        )
-        driver.execute_script(javascript_make_textarea_visible_string)
-        time.sleep(3)
-
-        javascript_add_innerHTML_string = f"document.getElementById('g-recaptcha-response').innerHTML='{answer_token}';"
-        driver.execute_script(javascript_add_innerHTML_string)
-        time.sleep(3)
-
-        javascript_make_button_visible_string = f"document.getElementById('exportData-modal-download-button').disabled = false;"
-        driver.execute_script(javascript_make_button_visible_string)
-        time.sleep(3)
-
-    def submit_finished_captcha(self, driver):
-        print("submit_finished_captcha")
-        submit_captcha_button = driver.find_element_by_xpath(
-            '//*[@id="exportData-modal-download-button"]'
-        )
-        submit_captcha_button.click()
-
-    def re_captcha_v2_get(self, driver) -> None:
-        print("re_captcha_v2_get")
-        get_api_endpoint = "http://2captcha.com/res.php"
-
-        api_key = os.getenv("CAPTCHA_API_KEY")
-        get_action = "get"
-        get_id = self.re_captcha_v2_post(driver=driver)
-
-        get_api_params = {"key": api_key, "action": get_action, "id": get_id}
-
-        answer_token = requests.get(url=get_api_endpoint, params=get_api_params).text
-
-        recount = 1
-        wait_time = 10
-
-        while answer_token == "CAPCHA_NOT_READY":
-            print(
-                f"CAPCHA_NOT_READY for the {recount} time and will wait {wait_time} seconds now"
-            )
-
-            time.sleep(wait_time)
-
-            recount += 1
-            wait_time += 10
-
-            answer_token = requests.get(
-                url=get_api_endpoint, params=get_api_params
-            ).text
-
-        print("answer token received")
-        trimmed_answer_token = answer_token[3:]
-        self.g_recaptcha_response(driver=driver, answer_token=trimmed_answer_token)
-        time.sleep(5)
-
-        self.submit_finished_captcha(driver=driver)
-
     def click_on_patients_cell_in_table(self) -> None:
         print("patients_table")
         x = 1
@@ -223,10 +143,42 @@ class Selenium_Chrome_Class:
             self.click_on_hyperlink_to_get_glucose_data(driver=driver)
             time.sleep(5)
 
-            self.get_k_parameter_re_captcha_v2(driver=driver)
+            # self.get_k_parameter_re_captcha_v2(driver=driver)
+            k_parameter = get_k_parameter_re_captcha_v2(driver=driver)
             time.sleep(5)
 
-            id_of_captcha = self.re_captcha_v2_get(driver=driver)
+            captcha_id_returned_after_posting = re_captcha_v2_post(
+                driver=driver, k_parameter=k_parameter
+            )
+
+            # id_of_captcha = self.re_captcha_v2_get(driver=driver)
+            captcha_answer_token = re_captcha_v2_get(
+                driver=driver, captcha_id=captcha_id_returned_after_posting
+            )
+
+            second_bearer_token, second_request_url = captcha_request_one(
+                driver=driver,
+                bearer_token=self.token,
+                answer_token=captcha_answer_token,
+            )
+
+            client_for_third_request, endpoint_for_third_request = captcha_request_two(
+                driver=driver,
+                second_bearer_token=second_bearer_token,
+                second_request_url=second_request_url,
+            )
+
+            response_for_fourth_request = captcha_request_three(
+                driver=driver,
+                request_client=client_for_third_request,
+                endpoint_for_third_request=endpoint_for_third_request,
+            )
+
+            glucose_data = captcha_request_four(
+                driver=driver, response_for_fourth_request=response_for_fourth_request
+            )
+
+            write_glucose_data_to_file(glucose_data=glucose_data)
 
             x += 1
 

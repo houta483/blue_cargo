@@ -11,12 +11,6 @@ from selenium import webdriver
 from helper_functions import selenium_helper
 
 
-# class Glucose_Captcha:
-# print("here")
-
-
-# app = Glucose_Captcha()
-
 selenium_navigator = Selenium_Chrome_Class(
     username=os.environ["USERNAME"],
     password=os.environ["GLUCOSE_PASSWORD"],
