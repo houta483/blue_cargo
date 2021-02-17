@@ -148,6 +148,7 @@ def captcha_request_two(driver, second_bearer_token, second_request_url):
 
 
 def captcha_request_three(driver, request_client, endpoint_for_third_request):
+
     headers = {
         "Connection": "keep-alive",
         "Pragma": "no-cache",
@@ -174,11 +175,13 @@ def captcha_request_three(driver, request_client, endpoint_for_third_request):
     )
 
     response_for_fourth_request = json.loads(response.text)
+    endpoint_for_fourth_request = response_for_fourth_request["args"]["url"]
 
-    return response_for_fourth_request
+    return endpoint_for_fourth_request
 
 
-def captcha_request_four(driver, response_for_fourth_request):
+def captcha_request_four(driver, endpoint_for_fourth_request):
+
     headers = {
         "Connection": "keep-alive",
         "Pragma": "no-cache",
@@ -196,7 +199,7 @@ def captcha_request_four(driver, response_for_fourth_request):
     }
 
     response = requests.get(
-        response_for_fourth_request["args"]["url"],
+        endpoint_for_fourth_request,
         headers=headers,
     )
 

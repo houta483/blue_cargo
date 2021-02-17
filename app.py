@@ -17,9 +17,18 @@ selenium_navigator = Selenium_Chrome_Class(
     current_url="https://www.libreview.com/",
 )
 
+google_sheets_module = google_sheet.Google_Sheets(
+    scopes=["https://www.googleapis.com/auth/spreadsheets"],
+)
+
+
 if __name__ == "__main__":
     selenium_navigator.start_driver()
     selenium_navigator.country_of_residence()
     selenium_navigator.populate_login_elements()
     selenium_navigator.go_to_patients_page()
     selenium_navigator.click_on_patients_cell_in_table()
+
+    google_sheets_module.get_credentials()
+    google_sheets_module.upload_data()
+    google_sheets_module.clean_up()

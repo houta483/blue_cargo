@@ -134,48 +134,52 @@ class Selenium_Chrome_Class:
         )
 
         while patients_cell:
+            time.sleep(5)
             self.go_to_patient_page(patients_cell=patients_cell)
-            time.sleep(5)
 
+            time.sleep(5)
             self.go_to_profile_of_patient(driver=driver)
-            time.sleep(5)
 
+            time.sleep(5)
             self.click_on_hyperlink_to_get_glucose_data(driver=driver)
-            time.sleep(5)
 
-            # self.get_k_parameter_re_captcha_v2(driver=driver)
+            time.sleep(3)
             k_parameter = get_k_parameter_re_captcha_v2(driver=driver)
-            time.sleep(5)
 
+            time.sleep(3)
             captcha_id_returned_after_posting = re_captcha_v2_post(
                 driver=driver, k_parameter=k_parameter
             )
 
-            # id_of_captcha = self.re_captcha_v2_get(driver=driver)
+            time.sleep(3)
             captcha_answer_token = re_captcha_v2_get(
                 driver=driver, captcha_id=captcha_id_returned_after_posting
             )
 
+            time.sleep(3)
             second_bearer_token, second_request_url = captcha_request_one(
                 driver=driver,
                 bearer_token=self.token,
                 answer_token=captcha_answer_token,
             )
 
+            time.sleep(3)
             client_for_third_request, endpoint_for_third_request = captcha_request_two(
                 driver=driver,
                 second_bearer_token=second_bearer_token,
                 second_request_url=second_request_url,
             )
 
-            response_for_fourth_request = captcha_request_three(
+            time.sleep(3)
+            endpoint_for_fourth_request = captcha_request_three(
                 driver=driver,
                 request_client=client_for_third_request,
                 endpoint_for_third_request=endpoint_for_third_request,
             )
 
+            time.sleep(3)
             glucose_data = captcha_request_four(
-                driver=driver, response_for_fourth_request=response_for_fourth_request
+                driver=driver, endpoint_for_fourth_request=endpoint_for_fourth_request
             )
 
             write_glucose_data_to_file(glucose_data=glucose_data)
