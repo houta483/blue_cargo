@@ -2,6 +2,8 @@ import re, requests, time, os, json
 
 
 def get_k_parameter_re_captcha_v2(driver) -> str:
+    print("get_k_parameter_re_captcha_v2")
+
     iframe_with_k_parameter = driver.find_element_by_xpath(
         '//*[@id="exportData-reCAPTCHA"]/div/div/div/div/iframe'
     )
@@ -14,6 +16,7 @@ def get_k_parameter_re_captcha_v2(driver) -> str:
 
 def re_captcha_v2_post(driver, k_parameter) -> str:
     print("re_captcha_v2_post")
+
     post_api_endpoint = "http://2captcha.com/in.php"
 
     api_key = os.getenv("CAPTCHA_API_KEY")
@@ -38,6 +41,7 @@ def re_captcha_v2_post(driver, k_parameter) -> str:
 
 def re_captcha_v2_get(driver, captcha_id) -> None:
     print("re_captcha_v2_get")
+
     get_api_endpoint = "http://2captcha.com/res.php"
 
     api_key = os.getenv("CAPTCHA_API_KEY")
@@ -66,11 +70,11 @@ def re_captcha_v2_get(driver, captcha_id) -> None:
     answer_token = answer_token[3:]
 
     return answer_token
-    # self.g_recaptcha_response(driver=driver, answer_token=trimmed_answer_token)
-    # time.sleep(5)
 
 
 def captcha_request_one(driver, bearer_token, answer_token) -> None:
+    print("captcha_request_one")
+
     id_for_post = driver.current_url
     id_for_post = id_for_post.split("/patient")[1]
     id_for_post = id_for_post.split("/profile")[0]
@@ -116,6 +120,7 @@ def captcha_request_one(driver, bearer_token, answer_token) -> None:
 
 
 def captcha_request_two(driver, second_bearer_token, second_request_url):
+    print("captcha_request_two")
 
     headers = {
         "Connection": "keep-alive",
@@ -148,6 +153,7 @@ def captcha_request_two(driver, second_bearer_token, second_request_url):
 
 
 def captcha_request_three(driver, request_client, endpoint_for_third_request):
+    print("captcha_request_three")
 
     headers = {
         "Connection": "keep-alive",
@@ -181,6 +187,7 @@ def captcha_request_three(driver, request_client, endpoint_for_third_request):
 
 
 def captcha_request_four(driver, endpoint_for_fourth_request):
+    print("captcha_request_four")
 
     headers = {
         "Connection": "keep-alive",
@@ -209,5 +216,7 @@ def captcha_request_four(driver, endpoint_for_fourth_request):
 
 
 def write_glucose_data_to_file(glucose_data):
+    print("write_glucose_data_to_file")
+
     with open("data.csv", "a") as file:
         file.write(glucose_data)

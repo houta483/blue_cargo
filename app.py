@@ -8,7 +8,6 @@ from helper_functions.google_sheet import Google_Sheets
 from googleapiclient.discovery import build
 from helper_functions import google_sheet
 from selenium import webdriver
-from helper_functions import selenium_helper
 
 
 selenium_navigator = Selenium_Chrome_Class(

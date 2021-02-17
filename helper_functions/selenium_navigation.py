@@ -16,7 +16,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from helper_functions.captcha_helper import *
 
-# from helper_functions import selenium_helper
+from helper_functions import selenium_helper
 
 DOCKER_KEY = os.environ.get("AM_I_IN_A_DOCKER_CONTAINER", False)
 
