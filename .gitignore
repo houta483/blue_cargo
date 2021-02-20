@@ -4,6 +4,7 @@ token.pickle
 pdf*
 extra*
 original_data
+*data*
 __*
 config
 env
