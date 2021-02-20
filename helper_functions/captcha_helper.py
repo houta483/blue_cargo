@@ -211,12 +211,16 @@ def captcha_request_four(driver, endpoint_for_fourth_request):
     )
 
     glucose_data = response.content.decode("utf-8")
+    get_name = glucose_data.split("\n")
+    get_name = get_name[1].split(",")
+    name = get_name[0]
+    name = str(name.replace(" ", "_"))
 
-    return glucose_data
+    return [name, glucose_data]
 
 
-def write_glucose_data_to_file(glucose_data):
+def write_glucose_data_to_local_file(name, glucose_data):
     print("write_glucose_data_to_file")
 
-    with open("data.csv", "a") as file:
+    with open(f"glucose_data/{name}_data.csv", "a") as file:
         file.write(glucose_data)

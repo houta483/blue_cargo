@@ -9,15 +9,21 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
-from helper_functions import google_sheet
+from pprint import pprint
+from googleapiclient import discovery
 
 
 class Google_Sheets:
-    def __init__(self, scopes):
+    def __init__(self, scopes, spreadsheet_id, tab_name, sheet_range):
         self.scopes = scopes
         self.credentials = None
+        self.spreadsheet_id = spreadsheet_id
+        self.tab_name = tab_name
+        self.sheet_range = sheet_range
 
-    def get_credentials(self):
+    def get_credentials(self) -> None:
+        print("get_credentials")
+
         if os.path.exists("config/token.pickle"):
             with open("config/token.pickle", "rb") as token:
                 self.credentials = pickle.load(token)
@@ -37,33 +43,127 @@ class Google_Sheets:
             with open("config/token.pickle", "wb") as token:
                 pickle.dump(self.credentials, token)
 
-    def upload_data(self):
-        google_sheets_module = google_sheet.Google_Sheets(
-            scopes=["https://www.googleapis.com/auth/spreadsheets"],
+    def get_current_glucose_data_from_online(self) -> None:
+        print("get_current_glucose_data_from_online")
+
+        service = build("sheets", "v4", credentials=self.credentials)
+        sheet = service.spreadsheets()
+
+        result = (
+            sheet.values()
+            .get(spreadsheetId=self.spreadsheet_id, range=self.sheet_range)
+            .execute()
         )
 
-        google_sheets_module.get_credentials()
+        values = result.get("values", [])
+        value_to_return = None
 
-        service = build("sheets", "v4", credentials=google_sheets_module.credentials)
+        if not values:
+            print("No data found.")
+            value_to_return = None
+        else:
+            rows = (
+                sheet.values()
+                .get(spreadsheetId=self.spreadsheet_id, range=self.sheet_range)
+                .execute()
+            )
+            data_frame = rows.get("values")
+            value_to_return = data_frame
+            current_glucose_data = data_frame
 
-        with open("data.csv") as csv_data_file:
-            csv_data = []
+            return current_glucose_data
+
+    def add_final_column(self, glucose_data):
+        current_glucose_data_with_column_added = glucose_data
+
+        for glucose_data_reading in current_glucose_data_with_column_added:
+            glucose_data_reading.append("")
+
+        return current_glucose_data_with_column_added
+
+    def load_local_csv_data(self, glucose_file):
+        print("load_local_csv_data")
+
+        csv_data = []
+
+        with open(f"filtered_glucose_data/{glucose_file}") as csv_data_file:
             csv_reader = csv.reader(csv_data_file)
 
-            for line in csv_reader:
-                csv_data.append(line)
+            for daily_input in csv_reader:
+                csv_data.append(daily_input)
 
-            content = csv_data
+        incoming_glucose_data = csv_data
 
-        resource = {"majorDimension": "ROWS", "values": content}
+        return incoming_glucose_data
+
+    def get_current_sheets(self):
+        service = build("sheets", "v4", credentials=self.credentials)
+
+        sheet_metadata = (
+            service.spreadsheets().get(spreadsheetId=self.spreadsheet_id).execute()
+        )
+
+        sheets = sheet_metadata.get("sheets", "")
+
+        current_sheets = []
+
+        for sheet in sheets:
+            current_sheets.append(sheet["properties"]["title"])
+
+        return current_sheets
+
+    def create_sheet_if_not_exist(self, name, current_sheets):
+
+        service = build("sheets", "v4", credentials=self.credentials)
+        gsheet_id = self.spreadsheet_id
+        spreadsheets = service.spreadsheets()
+        sheet_name = name
+
+        if name not in current_sheets:
+            try:
+                request_body = {
+                    "requests": [
+                        {
+                            "addSheet": {
+                                "properties": {
+                                    "title": sheet_name,
+                                    "tabColor": {
+                                        "red": 0.44,
+                                        "green": 0.99,
+                                        "blue": 0.50,
+                                    },
+                                }
+                            }
+                        }
+                    ]
+                }
+
+                response = spreadsheets.batchUpdate(
+                    spreadsheetId=gsheet_id, body=request_body
+                ).execute()
+
+                return response
+            except Exception as e:
+                print(e)
+        else:
+            print(f"The sheet for {name} already exists")
+
+    def upload_data(self, final_data) -> None:
+        # MAKE ONE TAB PER PERSON
+
+        print("upload_data")
+
+        service = build("sheets", "v4", credentials=self.credentials)
+        resource = {"majorDimension": "ROWS", "values": final_data}
 
         service.spreadsheets().values().append(
-            spreadsheetId=os.environ["SPREADSHEET_ID"],
-            range="Table_Metrics!A:S",
+            spreadsheetId=self.spreadsheet_id,
+            range=f"{self.tab_name}!{self.sheet_range}",
             body=resource,
             valueInputOption="USER_ENTERED",
         ).execute()
 
     def clean_up(self):
         print("final clean_up")
+
         os.remove("data.csv")

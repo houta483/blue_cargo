@@ -3,7 +3,6 @@ credentials.json
 token.pickle
 pdf*
 extra*
-*data*
 original_data
 __*
 config

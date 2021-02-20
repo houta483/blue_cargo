@@ -12,9 +12,11 @@ import json
 
 # from helper_functions import google_sheet
 from selenium import webdriver
+from helper_functions.glucose_data_helper import Glucose_Data_Helper
 from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from helper_functions.captcha_helper import *
+from helper_functions.google_sheet import Google_Sheets
 
 from helper_functions import selenium_helper
 
@@ -122,12 +124,19 @@ class Selenium_Chrome_Class:
 
         return patients_cell
 
-    def click_on_patients_cell_in_table(self) -> None:
+    def loop_through_patients_extracting_filtering_sorting_writing_data(self) -> None:
         print("patients_table")
         x = 1
 
         print("sleep for 10")
         time.sleep(10)
+
+        gs = Google_Sheets(
+            scopes=["https://www.googleapis.com/auth/spreadsheets"],
+            spreadsheet_id=os.environ["SPREADSHEET_ID"],
+            tab_name="Table_Metrics",
+            sheet_range="A:Z",
+        )
 
         patients_cell = driver.find_element_by_xpath(
             f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{x}]/td[1]/div"
@@ -178,16 +187,23 @@ class Selenium_Chrome_Class:
             )
 
             time.sleep(3)
-            glucose_data = captcha_request_four(
+            name, glucose_data = captcha_request_four(
                 driver=driver, endpoint_for_fourth_request=endpoint_for_fourth_request
             )
 
-            write_glucose_data_to_file(glucose_data=glucose_data)
+            time.sleep(3)
+            write_glucose_data_to_local_file(name=name, glucose_data=glucose_data)
+
+            Glucose_Data_Helper().main(name=name)
+
+            gs.get_credentials()
+            current_sheets = gs.get_current_sheets()
+            gs.create_sheet_if_not_exist(name=name, current_sheets=current_sheets)
 
             x += 1
 
+            time.sleep(5)
             self.return_to_dashboard(driver=driver)
-            time.sleep(5)
 
-            patients_cell = self.increment_patients_cell(driver=driver, x=x)
             time.sleep(5)
+            patients_cell = self.increment_patients_cell(driver=driver, x=x)
