@@ -99,22 +99,32 @@ class Selenium_Chrome_Class:
         patients_button_element.click()
 
     def go_to_patient_page(self, patients_cell):
+        print("go_to_patient_page")
+
         patients_cell.click()
 
     def go_to_profile_of_patient(self, driver):
+        print("go_to_profile_of_patient")
+
         profile_button = driver.find_element_by_id("profile-nav-button-container")
         profile_button.click()
 
     def click_on_hyperlink_to_get_glucose_data(self, driver):
+        print("click_on_hyperlink_to_get_glucose_data")
+
         download_glucose_data_hyperlink = driver.find_element_by_xpath(
             '//*[@id="patient-profile-data-download-button"]'
         )
         download_glucose_data_hyperlink.click()
 
     def return_to_dashboard(self, driver):
+        print("return_to_dashboard")
+
         driver.get("https://www.libreview.com/dashboard")
 
     def increment_patients_cell(self, driver, x):
+        print("increment_patients_cell")
+
         try:
             patients_cell = driver.find_element_by_xpath(
                 f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{x}]/td[1]/div"
@@ -124,19 +134,15 @@ class Selenium_Chrome_Class:
 
         return patients_cell
 
-    def loop_through_patients_extracting_filtering_sorting_writing_data(self) -> None:
-        print("patients_table")
+    def loop_through_patients_extracting_filtering_sorting_writing_data(
+        self, google_sheets_module
+    ) -> None:
+        print("loop_through_patients_extracting_filtering_sorting_writing_data")
+
         x = 1
 
         print("sleep for 10")
         time.sleep(10)
-
-        gs = Google_Sheets(
-            scopes=["https://www.googleapis.com/auth/spreadsheets"],
-            spreadsheet_id=os.environ["SPREADSHEET_ID"],
-            tab_name="Table_Metrics",
-            sheet_range="A:Z",
-        )
 
         patients_cell = driver.find_element_by_xpath(
             f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{x}]/td[1]/div"
@@ -194,11 +200,28 @@ class Selenium_Chrome_Class:
             time.sleep(3)
             write_glucose_data_to_local_file(name=name, glucose_data=glucose_data)
 
-            Glucose_Data_Helper().main(name=name)
+            Glucose_Data_Helper().sort_drop_replace_add_horizontal_write_etc(name=name)
 
-            gs.get_credentials()
-            current_sheets = gs.get_current_sheets()
-            gs.create_sheet_if_not_exist(name=name, current_sheets=current_sheets)
+            google_sheets_module.tab_name = name
+            google_sheets_module.get_credentials()
+            current_sheets = google_sheets_module.get_current_sheets()
+            sheet_already_exists = google_sheets_module.create_sheet_if_not_exist(
+                name=name, current_sheets=current_sheets
+            )
+
+            # IF SHEET EXITS GET DATA
+            if sheet_already_exists == True:
+                current_glucose_data = (
+                    google_sheets_module.get_current_glucose_data_from_online()
+                )
+
+            incoming_from_csv_glucose_data = google_sheets_module.load_local_csv_data(
+                glucose_file=f"filtered_glucose_data/filtered_{name}_data.csv"
+            )
+
+            final_data = incoming_from_csv_glucose_data
+
+            google_sheets_module.upload_data(final_data=final_data)
 
             x += 1
 

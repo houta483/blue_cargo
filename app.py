@@ -22,35 +22,18 @@ glucose_data_helper = Glucose_Data_Helper()
 google_sheets_module = google_sheet.Google_Sheets(
     scopes=["https://www.googleapis.com/auth/spreadsheets"],
     spreadsheet_id=os.environ["SPREADSHEET_ID"],
-    tab_name="Table_Metrics",
-    sheet_range="A:Z",
+    tab_name="",
+    sheet_range="A:GZ",
 )
 
 
 if __name__ == "__main__":
-    # selenium_navigator.start_driver()
-    # selenium_navigator.country_of_residence()
-    # selenium_navigator.populate_login_elements()
-    # selenium_navigator.go_to_patients_page()
-    # selenium_navigator.loop_through_patients_extracting_filtering_sorting_writing_data()
+    selenium_navigator.start_driver()
+    selenium_navigator.country_of_residence()
+    selenium_navigator.populate_login_elements()
+    selenium_navigator.go_to_patients_page()
+    selenium_navigator.loop_through_patients_extracting_filtering_sorting_writing_data(
+        google_sheets_module=google_sheets_module
+    )
 
-    google_sheets_module.get_credentials()
-
-    current_glucose_data = google_sheets_module.get_current_glucose_data_from_online()
-
-    if current_glucose_data is not None:
-        current_glucose_data_with_column_added = google_sheets_module.add_final_column(
-            glucose_data=current_glucose_data
-        )
-
-    # BREAKS HERE
-    for filtered_file in os.listdir("filtered_glucose_data"):
-
-        incoming_from_csv_glucose_data = google_sheets_module.load_local_csv_data(
-            glucose_file=filtered_file
-        )
-
-        final_data = incoming_from_csv_glucose_data
-
-        google_sheets_module.upload_data(final_data=final_data)
-    # google_sheets_module.clean_up()
+    google_sheets_module.clean_up()

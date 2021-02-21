@@ -3,6 +3,7 @@ from __future__ import print_function
 import os.path
 import pickle
 import csv
+import glob, os
 
 from collections import OrderedDict
 from googleapiclient.discovery import build
@@ -73,20 +74,12 @@ class Google_Sheets:
 
             return current_glucose_data
 
-    def add_final_column(self, glucose_data):
-        current_glucose_data_with_column_added = glucose_data
-
-        for glucose_data_reading in current_glucose_data_with_column_added:
-            glucose_data_reading.append("")
-
-        return current_glucose_data_with_column_added
-
     def load_local_csv_data(self, glucose_file):
         print("load_local_csv_data")
 
         csv_data = []
 
-        with open(f"filtered_glucose_data/{glucose_file}") as csv_data_file:
+        with open(f"{glucose_file}") as csv_data_file:
             csv_reader = csv.reader(csv_data_file)
 
             for daily_input in csv_reader:
@@ -142,11 +135,17 @@ class Google_Sheets:
                     spreadsheetId=gsheet_id, body=request_body
                 ).execute()
 
-                return response
+                print(response)
+                sheet_already_exists = False
+
             except Exception as e:
                 print(e)
+
         else:
             print(f"The sheet for {name} already exists")
+            sheet_already_exists = True
+
+        return sheet_already_exists
 
     def upload_data(self, final_data) -> None:
         # MAKE ONE TAB PER PERSON
@@ -165,5 +164,13 @@ class Google_Sheets:
 
     def clean_up(self):
         print("final clean_up")
+        directories = ["glucose_data", "filtered_glucose_data"]
 
-        os.remove("data.csv")
+        for directory in directories:
+            length = len(os.listdir(directory))
+            for index, file in enumerate(os.listdir(directory)):
+                if index == length:
+                    break
+
+                file_path = os.path.join(directory, file)
+                os.remove(file_path)

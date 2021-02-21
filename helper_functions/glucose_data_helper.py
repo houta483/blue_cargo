@@ -1,4 +1,4 @@
-import os, csv
+import os, csv, math
 import maya
 import pandas as pd
 
@@ -43,6 +43,8 @@ class Glucose_Data_Helper:
 
         # loop through list
         for date_time_entry in device_timestamp:
+            print(date_time_entry)
+
             date_time_entry = date_time_entry.split(" ")
             date_entry = date_time_entry[0]
             date_entry = maya.parse(date_entry).datetime().date()
@@ -149,7 +151,7 @@ class Glucose_Data_Helper:
         dataframe = pd.DataFrame(dataframe)
         dataframe.to_csv(f"filtered_glucose_data/filtered_{name}_data.csv", index=False)
 
-    def main(self, name):
+    def sort_drop_replace_add_horizontal_write_etc(self, name):
         glucose_data_helper = Glucose_Data_Helper()
 
         df = glucose_data_helper.truncate_glucose_data(name=name)
