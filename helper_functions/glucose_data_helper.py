@@ -139,6 +139,29 @@ class Glucose_Data_Helper:
 
         return horizontal_data
 
+    def filter_data_by_deadline(self, dataframe):
+        print("filter_data_by_deadline")
+        glucose_readings_after_deadline = []
+
+        today = datetime.date.today()
+        delta = dateutil.relativedelta.relativedelta(months=1)
+        one_month_prior = today - delta
+
+        count = 1
+        for _ in range(math.floor(len(dataframe) / 3)):
+            data_frame_entry = dataframe[count][0]
+
+            if data_frame_entry < one_month_prior:
+                count += 3
+                continue
+            else:
+                glucose_readings_after_deadline.append(dataframe[count - 1])
+                glucose_readings_after_deadline.append(dataframe[count])
+                glucose_readings_after_deadline.append(dataframe[count + 1])
+                count += 3
+
+        return glucose_readings_after_deadline
+
     def write_to_csv_file(self, dataframe, name):
         dataframe = pd.DataFrame(dataframe)
         dataframe.to_csv(f"filtered_glucose_data/filtered_{name}_data.csv", index=False)
@@ -163,4 +186,5 @@ class Glucose_Data_Helper:
         df = glucose_data_helper.replace_nan(dataframe=df)
         df = glucose_data_helper.add_and_drop_columns(dataframe=df)
         df = glucose_data_helper.make_data_horizontal(name=name, dataframe=df)
+        df = glucose_data_helper.filter_data_by_deadline(dataframe=df)
         glucose_data_helper.write_to_csv_file(dataframe=df, name=name)

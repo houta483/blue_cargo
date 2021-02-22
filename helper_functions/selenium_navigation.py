@@ -205,15 +205,9 @@ class Selenium_Chrome_Class:
             google_sheets_module.tab_name = name
             google_sheets_module.get_credentials()
             current_sheets = google_sheets_module.get_current_sheets()
-            sheet_already_exists = google_sheets_module.create_sheet_if_not_exist(
+            google_sheets_module.create_sheet_if_not_exist(
                 name=name, current_sheets=current_sheets
             )
-
-            # IF SHEET EXITS GET DATA
-            if sheet_already_exists == True:
-                current_glucose_data = (
-                    google_sheets_module.get_current_glucose_data_from_online()
-                )
 
             incoming_from_csv_glucose_data = google_sheets_module.load_local_csv_data(
                 glucose_file=f"filtered_glucose_data/filtered_{name}_data.csv"

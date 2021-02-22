@@ -44,36 +44,6 @@ class Google_Sheets:
             with open("config/token.pickle", "wb") as token:
                 pickle.dump(self.credentials, token)
 
-    def get_current_glucose_data_from_online(self) -> None:
-        print("get_current_glucose_data_from_online")
-
-        service = build("sheets", "v4", credentials=self.credentials)
-        sheet = service.spreadsheets()
-
-        result = (
-            sheet.values()
-            .get(spreadsheetId=self.spreadsheet_id, range=self.sheet_range)
-            .execute()
-        )
-
-        values = result.get("values", [])
-        value_to_return = None
-
-        if not values:
-            print("No data found.")
-            value_to_return = None
-        else:
-            rows = (
-                sheet.values()
-                .get(spreadsheetId=self.spreadsheet_id, range=self.sheet_range)
-                .execute()
-            )
-            data_frame = rows.get("values")
-            value_to_return = data_frame
-            current_glucose_data = data_frame
-
-            return current_glucose_data
-
     def load_local_csv_data(self, glucose_file):
         print("load_local_csv_data")
 
