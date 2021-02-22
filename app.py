@@ -23,7 +23,7 @@ google_sheets_module = google_sheet.Google_Sheets(
     scopes=["https://www.googleapis.com/auth/spreadsheets"],
     spreadsheet_id=os.environ["SPREADSHEET_ID"],
     tab_name="",
-    sheet_range="A:GZ",
+    sheet_range="A:IZ",
 )
 
 
