@@ -135,7 +135,6 @@ class Google_Sheets:
                     spreadsheetId=gsheet_id, body=request_body
                 ).execute()
 
-                print(response)
                 sheet_already_exists = False
 
             except Exception as e:
@@ -148,14 +147,12 @@ class Google_Sheets:
         return sheet_already_exists
 
     def upload_data(self, final_data) -> None:
-        # MAKE ONE TAB PER PERSON
-
         print("upload_data")
 
         service = build("sheets", "v4", credentials=self.credentials)
         resource = {"majorDimension": "ROWS", "values": final_data}
 
-        service.spreadsheets().values().append(
+        service.spreadsheets().values().update(
             spreadsheetId=self.spreadsheet_id,
             range=f"{self.tab_name}!{self.sheet_range}",
             body=resource,

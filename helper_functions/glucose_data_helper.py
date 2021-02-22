@@ -1,4 +1,5 @@
 import os, csv, math
+import datetime, dateutil
 import maya
 import pandas as pd
 
@@ -41,10 +42,7 @@ class Glucose_Data_Helper:
 
         device_timestamp = dataframe["Device Timestamp"]
 
-        # loop through list
         for date_time_entry in device_timestamp:
-            print(date_time_entry)
-
             date_time_entry = date_time_entry.split(" ")
             date_entry = date_time_entry[0]
             date_entry = maya.parse(date_entry).datetime().date()
@@ -109,7 +107,6 @@ class Glucose_Data_Helper:
         date_cache = ""
 
         for index, row in dataframe.iterrows():
-            # FIRST TIME WITH NEW MONTH
             if date_cache != row["Date"] and (date_cache == ""):
                 date_cache = row["Date"]
 
@@ -118,20 +115,16 @@ class Glucose_Data_Helper:
 
                 horizontal_data_entry_data.append(row["Glucose_Reading"])
 
-            # OTHER TIMES WITH NEW MONTH
             elif date_cache != row["Date"] and (date_cache != ""):
                 date_cache = row["Date"]
 
-                # TAKE CARE OF OLD DATA
                 horizontal_data.append(horizontal_data_entry_time)
                 horizontal_data.append(horizontal_data_entry_data)
                 horizontal_data.append(seperator)
 
-                # RESET DATA LISTS
                 horizontal_data_entry_time = []
                 horizontal_data_entry_data = []
 
-                # ADD NEW DATA
                 horizontal_data_entry_time.append(name)
                 horizontal_data_entry_data.append(row["Date"])
 
@@ -141,7 +134,6 @@ class Glucose_Data_Helper:
                 horizontal_data_entry_time.append(row["Time"])
                 horizontal_data_entry_data.append(row["Glucose_Reading"])
 
-        # APPEND FINAL DATA
         horizontal_data.append(horizontal_data_entry_time)
         horizontal_data.append(horizontal_data_entry_data)
 
