@@ -44,7 +44,7 @@ class Google_Sheets:
             with open("config/token.pickle", "wb") as token:
                 pickle.dump(self.credentials, token)
 
-    def load_local_csv_data(self, glucose_file):
+    def load_local_csv_data(self, glucose_file) -> list:
         print("load_local_csv_data")
 
         csv_data = []
@@ -59,7 +59,7 @@ class Google_Sheets:
 
         return incoming_glucose_data
 
-    def get_current_sheets(self):
+    def get_current_sheets(self) -> list:
         service = build("sheets", "v4", credentials=self.credentials)
 
         sheet_metadata = (
@@ -75,7 +75,7 @@ class Google_Sheets:
 
         return current_sheets
 
-    def create_sheet_if_not_exist(self, name, current_sheets):
+    def create_sheet_if_not_exist(self, name, current_sheets) -> bool:
 
         service = build("sheets", "v4", credentials=self.credentials)
         gsheet_id = self.spreadsheet_id
@@ -129,7 +129,7 @@ class Google_Sheets:
             valueInputOption="USER_ENTERED",
         ).execute()
 
-    def clean_up(self):
+    def clean_up(self) -> None:
         print("final clean_up")
         directories = ["glucose_data", "filtered_glucose_data"]
 

@@ -5,7 +5,7 @@ import pandas as pd
 
 
 class Glucose_Data_Helper:
-    def truncate_glucose_data(self, name):
+    def truncate_glucose_data(self, name) -> list:
         print("truncate_glucose_data")
 
         input_file = f"glucose_data/{name}_data.csv"
@@ -34,7 +34,7 @@ class Glucose_Data_Helper:
 
         return df
 
-    def split_device_time(self, dataframe):
+    def split_device_time(self, dataframe) -> list:
         print("split_device_time")
 
         formatted_dates = []
@@ -57,7 +57,7 @@ class Glucose_Data_Helper:
 
     def write_formatted_date_and_time(
         self, dataframe, formatted_dates, formatted_times
-    ):
+    ) -> list:
         print("write_formatted_date_and_time")
 
         dataframe["Date"] = formatted_dates
@@ -67,7 +67,7 @@ class Glucose_Data_Helper:
 
         return df
 
-    def sort_data_by_timestamp(self, dataframe):
+    def sort_data_by_timestamp(self, dataframe) -> list:
         print("sort_data_by_timestamp")
 
         df = dataframe.sort_values(
@@ -76,17 +76,17 @@ class Glucose_Data_Helper:
 
         return df
 
-    def drop_record_type_at_six(self, dataframe):
+    def drop_record_type_at_six(self, dataframe) -> list:
         df = dataframe.drop(dataframe[dataframe["Record Type"] == "6"].index)
 
         return df
 
-    def replace_nan(self, dataframe):
+    def replace_nan(self, dataframe) -> list:
         dataframe.fillna("", inplace=True)
 
         return dataframe
 
-    def add_and_drop_columns(self, dataframe):
+    def add_and_drop_columns(self, dataframe) -> list:
         df = dataframe.drop(["Record Type"], axis=1)
         df["Glucose_Reading"] = df["Historic Glucose mg/dL"].astype(str) + df[
             "Scan Glucose mg/dL"
@@ -96,7 +96,7 @@ class Glucose_Data_Helper:
 
         return df
 
-    def make_data_horizontal(self, name, dataframe):
+    def make_data_horizontal(self, name, dataframe) -> list:
         print("make_data_horizontal")
 
         horizontal_data = []
@@ -139,7 +139,7 @@ class Glucose_Data_Helper:
 
         return horizontal_data
 
-    def filter_data_by_deadline(self, dataframe):
+    def filter_data_by_deadline(self, dataframe) -> list:
         print("filter_data_by_deadline")
         glucose_readings_after_deadline = []
 
@@ -162,11 +162,11 @@ class Glucose_Data_Helper:
 
         return glucose_readings_after_deadline
 
-    def write_to_csv_file(self, dataframe, name):
+    def write_to_csv_file(self, dataframe, name) -> None:
         dataframe = pd.DataFrame(dataframe)
         dataframe.to_csv(f"filtered_glucose_data/filtered_{name}_data.csv", index=False)
 
-    def sort_drop_replace_add_horizontal_write_etc(self, name):
+    def sort_drop_replace_add_horizontal_write_etc(self, name) -> None:
         glucose_data_helper = Glucose_Data_Helper()
 
         df = glucose_data_helper.truncate_glucose_data(name=name)

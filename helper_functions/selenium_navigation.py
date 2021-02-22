@@ -10,14 +10,12 @@ import sys
 import requests
 import json
 
-# from helper_functions import google_sheet
 from selenium import webdriver
 from helper_functions.glucose_data_helper import Glucose_Data_Helper
 from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from helper_functions.captcha_helper import *
 from helper_functions.google_sheet import Google_Sheets
-
 from helper_functions import selenium_helper
 
 DOCKER_KEY = os.environ.get("AM_I_IN_A_DOCKER_CONTAINER", False)
@@ -48,7 +46,7 @@ class Selenium_Chrome_Class:
         time.sleep(5)
         return driver
 
-    def country_of_residence(self):
+    def country_of_residence(self) -> None:
         print("country_of_residence")
         print("sleep 5")
         time.sleep(5)
@@ -67,7 +65,7 @@ class Selenium_Chrome_Class:
         except:
             raise BaseException("Could not submit the country of residence")
 
-    def populate_login_elements(self):
+    def populate_login_elements(self) -> None:
         print("populate_login_element")
         print("sleep 5")
         time.sleep(5)
@@ -89,7 +87,7 @@ class Selenium_Chrome_Class:
         except:
             raise BaseException("You could not login so a cookie was not set")
 
-    def go_to_patients_page(self):
+    def go_to_patients_page(self) -> None:
         print("go_to_patients_page")
         print("sleep 5")
         time.sleep(5)
@@ -98,18 +96,18 @@ class Selenium_Chrome_Class:
         )
         patients_button_element.click()
 
-    def go_to_patient_page(self, patients_cell):
+    def go_to_patient_page(self, patients_cell) -> None:
         print("go_to_patient_page")
 
         patients_cell.click()
 
-    def go_to_profile_of_patient(self, driver):
+    def go_to_profile_of_patient(self, driver) -> None:
         print("go_to_profile_of_patient")
 
         profile_button = driver.find_element_by_id("profile-nav-button-container")
         profile_button.click()
 
-    def click_on_hyperlink_to_get_glucose_data(self, driver):
+    def click_on_hyperlink_to_get_glucose_data(self, driver) -> None:
         print("click_on_hyperlink_to_get_glucose_data")
 
         download_glucose_data_hyperlink = driver.find_element_by_xpath(
@@ -117,7 +115,7 @@ class Selenium_Chrome_Class:
         )
         download_glucose_data_hyperlink.click()
 
-    def return_to_dashboard(self, driver):
+    def return_to_dashboard(self, driver) -> None:
         print("return_to_dashboard")
 
         driver.get("https://www.libreview.com/dashboard")

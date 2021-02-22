@@ -39,7 +39,7 @@ def re_captcha_v2_post(driver, k_parameter) -> str:
     return id_re_captcha_v2
 
 
-def re_captcha_v2_get(driver, captcha_id) -> None:
+def re_captcha_v2_get(driver, captcha_id) -> str:
     print("re_captcha_v2_get")
 
     get_api_endpoint = "http://2captcha.com/res.php"
@@ -72,7 +72,7 @@ def re_captcha_v2_get(driver, captcha_id) -> None:
     return answer_token
 
 
-def captcha_request_one(driver, bearer_token, answer_token) -> None:
+def captcha_request_one(driver, bearer_token, answer_token) -> list:
     print("captcha_request_one")
 
     id_for_post = driver.current_url
@@ -119,7 +119,7 @@ def captcha_request_one(driver, bearer_token, answer_token) -> None:
     return [second_bearer_token, second_request_url]
 
 
-def captcha_request_two(driver, second_bearer_token, second_request_url):
+def captcha_request_two(driver, second_bearer_token, second_request_url) -> list:
     print("captcha_request_two")
 
     headers = {
@@ -152,7 +152,7 @@ def captcha_request_two(driver, second_bearer_token, second_request_url):
     return [client_for_third_request, endpoint_for_third_request]
 
 
-def captcha_request_three(driver, request_client, endpoint_for_third_request):
+def captcha_request_three(driver, request_client, endpoint_for_third_request) -> str:
     print("captcha_request_three")
 
     headers = {
@@ -186,7 +186,7 @@ def captcha_request_three(driver, request_client, endpoint_for_third_request):
     return endpoint_for_fourth_request
 
 
-def captcha_request_four(driver, endpoint_for_fourth_request):
+def captcha_request_four(driver, endpoint_for_fourth_request) -> list:
     print("captcha_request_four")
 
     headers = {
@@ -219,7 +219,7 @@ def captcha_request_four(driver, endpoint_for_fourth_request):
     return [name, glucose_data]
 
 
-def write_glucose_data_to_local_file(name, glucose_data):
+def write_glucose_data_to_local_file(name, glucose_data) -> None:
     print("write_glucose_data_to_file")
 
     with open(f"glucose_data/{name}_data.csv", "a") as file:
