@@ -136,6 +136,7 @@ class Glucose_Data_Helper:
 
         horizontal_data.append(horizontal_data_entry_time)
         horizontal_data.append(horizontal_data_entry_data)
+        horizontal_data.append(seperator)
 
         return horizontal_data
 
@@ -151,7 +152,7 @@ class Glucose_Data_Helper:
         for _ in range(math.floor(len(dataframe) / 3)):
             data_frame_entry = dataframe[count][0]
 
-            if data_frame_entry < one_month_prior:
+            if data_frame_entry <= one_month_prior:
                 count += 3
                 continue
             else:
