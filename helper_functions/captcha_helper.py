@@ -34,7 +34,6 @@ def re_captcha_v2_post(driver, k_parameter) -> str:
     id_re_captcha_v2 = requests.post(
         url=post_api_endpoint, params=post_api_params, json=1
     ).text[3:]
-    time.sleep(20)
 
     return id_re_captcha_v2
 

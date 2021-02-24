@@ -11,9 +11,13 @@ import requests
 import json
 
 from selenium import webdriver
-from helper_functions.glucose_data_helper import Glucose_Data_Helper
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
-from selenium import webdriver
+
+from helper_functions.glucose_data_helper import Glucose_Data_Helper
 from helper_functions.captcha_helper import *
 from helper_functions.google_sheet import Google_Sheets
 from helper_functions import selenium_helper
@@ -39,17 +43,29 @@ class Selenium_Chrome_Class:
         self.current_url = current_url
         self.token = None
 
+    def wait_for_page_to_load(self, driver, id_of_element):
+        print("wait_for_page_to_load")
+        timeout = 10
+
+        try:
+            page_is_ready = WebDriverWait(driver=driver, timeout=timeout).until(
+                EC.presence_of_element_located((By.ID, id_of_element))
+            )
+            print("Page is ready!")
+
+        except TimeoutException:
+            print("Loading took too much time!")
+
     def start_driver(self):
         print("start_driver")
         driver.get("https://www.libreview.com/")
-        print("sleep 5")
-        time.sleep(5)
+        self.wait_for_page_to_load(driver=driver, id_of_element="submit-button")
+
         return driver
 
     def country_of_residence(self) -> None:
         print("country_of_residence")
-        print("sleep 5")
-        time.sleep(5)
+        self.wait_for_page_to_load(driver=driver, id_of_element="country-select")
 
         country_of_residence_element = driver.find_element_by_id("country-select")
         country_of_residence_usa = driver.find_element_by_xpath(
@@ -67,8 +83,7 @@ class Selenium_Chrome_Class:
 
     def populate_login_elements(self) -> None:
         print("populate_login_element")
-        print("sleep 5")
-        time.sleep(5)
+        self.wait_for_page_to_load(driver=driver, id_of_element="loginForm-email-input")
 
         login_element = driver.find_element_by_id("loginForm-email-input")
         password_element = driver.find_element_by_id("loginForm-password-input")
@@ -78,7 +93,9 @@ class Selenium_Chrome_Class:
 
         try:
             login_button_element.click()
-            time.sleep(3)
+            self.wait_for_page_to_load(
+                driver=driver, id_of_element="meterUpload-meterImage-image"
+            )
 
             token = driver.execute_script(
                 "return window.sessionStorage.getItem('token')"
@@ -89,8 +106,10 @@ class Selenium_Chrome_Class:
 
     def go_to_patients_page(self) -> None:
         print("go_to_patients_page")
-        print("sleep 5")
-        time.sleep(5)
+        self.wait_for_page_to_load(
+            driver=driver, id_of_element="main-header-dashboard-icon"
+        )
+
         patients_button_element = driver.find_element_by_id(
             "main-header-dashboard-icon"
         )
@@ -99,16 +118,25 @@ class Selenium_Chrome_Class:
     def go_to_patient_page(self, patients_cell) -> None:
         print("go_to_patient_page")
 
+        time.sleep(3)
+
         patients_cell.click()
 
     def go_to_profile_of_patient(self, driver) -> None:
         print("go_to_profile_of_patient")
+        self.wait_for_page_to_load(
+            driver=driver, id_of_element="profile-nav-button-container"
+        )
 
         profile_button = driver.find_element_by_id("profile-nav-button-container")
         profile_button.click()
 
     def click_on_hyperlink_to_get_glucose_data(self, driver) -> None:
         print("click_on_hyperlink_to_get_glucose_data")
+
+        self.wait_for_page_to_load(
+            driver=driver, id_of_element="patient-profile-data-download-button"
+        )
 
         download_glucose_data_hyperlink = driver.find_element_by_xpath(
             '//*[@id="patient-profile-data-download-button"]'
@@ -122,6 +150,10 @@ class Selenium_Chrome_Class:
 
     def increment_patients_cell(self, driver, x):
         print("increment_patients_cell")
+
+        self.wait_for_page_to_load(
+            driver=driver, id_of_element="download-current-view-link"
+        )
 
         try:
             patients_cell = driver.find_element_by_xpath(
@@ -139,21 +171,15 @@ class Selenium_Chrome_Class:
 
         x = 1
 
-        print("sleep for 10")
-        time.sleep(10)
+        time.sleep(3)
 
         patients_cell = driver.find_element_by_xpath(
             f"/html/body/div[1]/div[3]/div[1]/div/div[2]/div[1]/div/div[1]/table/tbody/tr[{x}]/td[1]/div"
         )
 
         while patients_cell:
-            time.sleep(5)
             self.go_to_patient_page(patients_cell=patients_cell)
-
-            time.sleep(5)
             self.go_to_profile_of_patient(driver=driver)
-
-            time.sleep(5)
             self.click_on_hyperlink_to_get_glucose_data(driver=driver)
 
             time.sleep(3)
